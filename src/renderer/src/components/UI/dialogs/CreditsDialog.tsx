@@ -24,7 +24,7 @@ const CreditsDialog: React.FC<CreditsDialogProps> = ({ isOpen, onClose }) => {
     <Dialog isOpen={isOpen} onClose={onClose}>
       <DialogContent className="max-w-sm">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+          <DialogTitle className="flex items-center gap-2 pl-0">
             <Heart size={20} className="text-red-400" />
             Credits
           </DialogTitle>

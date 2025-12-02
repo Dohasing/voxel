@@ -40,7 +40,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
             <div className="p-2 bg-neutral-900 rounded-lg">
               <AlertTriangle className="text-neutral-300" size={20} />
             </div>
-            <DialogTitle>{title}</DialogTitle>
+            <DialogTitle className="pl-0">{title}</DialogTitle>
           </div>
           <DialogClose />
         </DialogHeader>

@@ -187,7 +187,7 @@ DialogHeader.displayName = 'DialogHeader'
 
 const DialogTitle = React.forwardRef<HTMLHeadingElement, React.HTMLAttributes<HTMLHeadingElement>>(
   ({ className, ...props }, ref) => (
-    <h3 ref={ref} className={cn('text-xl font-semibold text-white', className)} {...props} />
+    <h3 ref={ref} className={cn('text-xl font-semibold text-white pl-2', className)} {...props} />
   )
 )
 DialogTitle.displayName = 'DialogTitle'
@@ -205,7 +205,7 @@ const DialogClose = React.forwardRef<
         onClose()
       }}
       className={cn(
-        'pressable p-2.5 text-neutral-400 hover:text-white hover:bg-neutral-800 rounded-full transition-colors',
+        'pressable p-2.5 text-neutral-400 hover:text-white hover:bg-neutral-800 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed',
         className
       )}
       {...props}

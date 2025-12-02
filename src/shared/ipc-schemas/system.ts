@@ -37,6 +37,21 @@ import type { RobloxInstallation as RobloxInstallationType } from '../../rendere
 export type RobloxInstallation = RobloxInstallationType
 
 // ============================================================================
+// DETECTED INSTALLATIONS SCHEMA
+// ============================================================================
+
+export const detectedInstallationSchema = z.object({
+  path: z.string(),
+  version: z.string(),
+  binaryType: z.enum(['WindowsPlayer', 'WindowsStudio']),
+  exePath: z.string()
+})
+
+export const detectedInstallationsSchema = z.array(detectedInstallationSchema)
+
+export type DetectedInstallation = z.infer<typeof detectedInstallationSchema>
+
+// ============================================================================
 // SETTINGS SCHEMAS
 // ============================================================================
 

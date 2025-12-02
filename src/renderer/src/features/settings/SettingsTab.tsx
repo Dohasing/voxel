@@ -1,8 +1,8 @@
-import React, { useState } from 'react'
-import { Users, HardDrive, Palette, Bell, Lock, Shield, Sliders } from 'lucide-react'
+import React, { useState, useEffect } from 'react'
+import { Users, HardDrive, Palette, Bell, Lock, Shield, Sliders, Type, Plus, Trash2, Check } from 'lucide-react'
 import { motion } from 'framer-motion'
 import Color from 'color'
-import { useQueryClient } from '@tanstack/react-query'
+import { useQueryClient, useQuery, useMutation } from '@tanstack/react-query'
 import { Account, Settings } from '../../types'
 import { cn } from '../../lib/utils'
 import CustomCheckbox from '../../components/UI/buttons/CustomCheckbox'
@@ -34,6 +34,14 @@ import { useSetAppUnlocked } from '../../stores/useUIStore'
 import { queryKeys } from '../../../../shared/queryKeys'
 import PinSetupDialog from '../../components/UI/security/PinSetupDialog'
 import { useInstallations } from '../install/stores/useInstallationsStore'
+import {
+  CustomFont,
+  getGoogleFontUrl,
+  loadFont,
+  unloadFont,
+  applyFont,
+  isValidGoogleFontFamily
+} from '../../utils/fontUtils'
 
 interface SettingsTabProps {
   accounts: Account[]
@@ -42,14 +50,108 @@ interface SettingsTabProps {
 }
 
 const SettingsTab: React.FC<SettingsTabProps> = ({ accounts, settings, onUpdateSettings }) => {
-  const [activeTab, setActiveTab] = useState<'general' | 'notifications' | 'security'>('general')
+  const [activeTab, setActiveTab] = useState<'general' | 'appearance' | 'notifications' | 'security'>('general')
   const [isColorPickerOpen, setIsColorPickerOpen] = useState(false)
   const [isPinDialogOpen, setIsPinDialogOpen] = useState(false)
+  const [newFontFamily, setNewFontFamily] = useState('')
+  const [fontError, setFontError] = useState<string | null>(null)
+  const [isAddingFont, setIsAddingFont] = useState(false)
   const queryClient = useQueryClient()
   const setAppUnlocked = useSetAppUnlocked()
 
   // Use shared installations store instead of local state + localStorage
   const installations = useInstallations()
+
+  // Custom fonts queries
+  const { data: customFonts = [] } = useQuery({
+    queryKey: ['customFonts'],
+    queryFn: () => window.api.getCustomFonts(),
+    staleTime: Infinity
+  })
+
+  const { data: activeFont = null } = useQuery({
+    queryKey: ['activeFont'],
+    queryFn: () => window.api.getActiveFont(),
+    staleTime: Infinity
+  })
+
+  // Load fonts and apply active font on mount
+  useEffect(() => {
+    customFonts.forEach((font) => {
+      loadFont(font).catch(console.error)
+    })
+  }, [customFonts])
+
+  useEffect(() => {
+    applyFont(activeFont)
+  }, [activeFont])
+
+  const addFontMutation = useMutation({
+    mutationFn: async (font: CustomFont) => {
+      await loadFont(font)
+      await window.api.addCustomFont(font)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['customFonts'] })
+      setNewFontFamily('')
+      setFontError(null)
+    },
+    onError: (error: Error) => {
+      setFontError(error.message)
+    }
+  })
+
+  const removeFontMutation = useMutation({
+    mutationFn: async (family: string) => {
+      unloadFont(family)
+      await window.api.removeCustomFont(family)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['customFonts'] })
+      queryClient.invalidateQueries({ queryKey: ['activeFont'] })
+    }
+  })
+
+  const setActiveFontMutation = useMutation({
+    mutationFn: async (family: string | null) => {
+      await window.api.setActiveFont(family)
+      applyFont(family)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['activeFont'] })
+    }
+  })
+
+  const handleAddFont = async () => {
+    const trimmedFamily = newFontFamily.trim()
+    if (!trimmedFamily) {
+      setFontError('Please enter a font family name')
+      return
+    }
+
+    if (!isValidGoogleFontFamily(trimmedFamily)) {
+      setFontError('Invalid font family name. Use only letters, numbers, and spaces.')
+      return
+    }
+
+    // Check if font already exists
+    if (customFonts.some((f) => f.family.toLowerCase() === trimmedFamily.toLowerCase())) {
+      setFontError('This font has already been added')
+      return
+    }
+
+    setIsAddingFont(true)
+    setFontError(null)
+
+    try {
+      const url = getGoogleFontUrl(trimmedFamily)
+      await addFontMutation.mutateAsync({ family: trimmedFamily, url })
+    } catch {
+      setFontError('Failed to load font. Make sure the font name is correct.')
+    } finally {
+      setIsAddingFont(false)
+    }
+  }
 
   // Notification settings from store
   const notifyFriendOnline = useNotifyFriendOnline()
@@ -137,10 +239,12 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ accounts, settings, onUpdateS
                 left:
                   activeTab === 'general'
                     ? '0%'
-                    : activeTab === 'notifications'
-                      ? '33.333%'
-                      : '66.666%',
-                width: '33.333%'
+                    : activeTab === 'appearance'
+                      ? '25%'
+                      : activeTab === 'notifications'
+                        ? '50%'
+                        : '75%',
+                width: '25%'
               }}
               transition={{ type: 'spring', stiffness: 500, damping: 35 }}
             />
@@ -154,6 +258,17 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ accounts, settings, onUpdateS
             >
               <Sliders size={16} />
               General
+            </button>
+
+            <button
+              onClick={() => setActiveTab('appearance')}
+              className={cn(
+                'flex-1 py-4 text-sm font-medium transition-colors flex items-center justify-center gap-2 relative z-10 hover:bg-neutral-900/50 active:bg-neutral-900',
+                activeTab === 'appearance' ? 'text-white' : 'text-neutral-500 hover:text-neutral-300'
+              )}
+            >
+              <Type size={16} />
+              Appearance
             </button>
 
             <button
@@ -316,6 +431,156 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ accounts, settings, onUpdateS
                         Display the selected account's quick profile card to see your profile
                         faster.
                       </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Appearance Settings */}
+          {activeTab === 'appearance' && (
+            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-300">
+              <div>
+                <h3 className="text-lg font-semibold text-white mb-1">Appearance</h3>
+                <p className="text-sm text-neutral-400 mb-6">
+                  Customize fonts and visual styles.
+                </p>
+
+                <div className="space-y-6">
+                  {/* Custom Fonts Section */}
+                  <div className="flex flex-col space-y-2">
+                    <label className="text-sm font-medium text-neutral-400 flex items-center">
+                      <Type size={16} className="mr-2" />
+                      Custom Fonts
+                    </label>
+                    <p className="text-xs text-neutral-500 mb-2">
+                      Add fonts from Google Fonts to use in the application.
+                    </p>
+
+                    {/* Add Font Input */}
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={newFontFamily}
+                        onChange={(e) => {
+                          setNewFontFamily(e.target.value)
+                          setFontError(null)
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            handleAddFont()
+                          }
+                        }}
+                        placeholder="Enter Google Font name (e.g., Roboto)"
+                        className="flex-1 bg-neutral-900 border border-neutral-800 rounded-lg px-3 py-2 text-sm text-white placeholder:text-neutral-600 focus:border-[var(--accent-color)] focus:outline-none"
+                      />
+                      <button
+                        onClick={handleAddFont}
+                        disabled={isAddingFont || !newFontFamily.trim()}
+                        className="px-4 py-2 bg-[var(--accent-color)] text-[var(--accent-color-foreground)] rounded-lg text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                      >
+                        {isAddingFont ? (
+                          <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <Plus size={16} />
+                        )}
+                        Add
+                      </button>
+                    </div>
+
+                    {fontError && (
+                      <p className="text-xs text-red-400 mt-1">{fontError}</p>
+                    )}
+
+                    <p className="text-xs text-neutral-600 mt-1">
+                      Browse available fonts at{' '}
+                      <a
+                        href="https://fonts.google.com"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[var(--accent-color)] hover:underline"
+                      >
+                        fonts.google.com
+                      </a>
+                    </p>
+                  </div>
+
+                  {/* Active Font Selection */}
+                  <div className="flex flex-col space-y-2">
+                    <label className="text-sm font-medium text-neutral-400">
+                      Active Font
+                    </label>
+                    <p className="text-xs text-neutral-500 mb-2">
+                      Select which font to use for the application interface.
+                    </p>
+
+                    <div className="space-y-2">
+                      {/* Default Font Option */}
+                      <button
+                        onClick={() => setActiveFontMutation.mutate(null)}
+                        className={cn(
+                          'w-full flex items-center justify-between p-3 rounded-lg border transition-colors text-left',
+                          activeFont === null
+                            ? 'border-[var(--accent-color)] bg-[var(--accent-color-faint)]'
+                            : 'border-neutral-800 bg-neutral-900/30 hover:border-neutral-700'
+                        )}
+                      >
+                        <div className="flex items-center gap-3">
+                          <span
+                            className="text-sm text-white"
+                            style={{ fontFamily: "'Inter', sans-serif" }}
+                          >
+                            Inter (Default)
+                          </span>
+                        </div>
+                        {activeFont === null && (
+                          <Check size={16} className="text-[var(--accent-color)]" />
+                        )}
+                      </button>
+
+                      {/* Custom Fonts List */}
+                      {customFonts.map((font) => (
+                        <div
+                          key={font.family}
+                          className={cn(
+                            'w-full flex items-center justify-between p-3 rounded-lg border transition-colors',
+                            activeFont === font.family
+                              ? 'border-[var(--accent-color)] bg-[var(--accent-color-faint)]'
+                              : 'border-neutral-800 bg-neutral-900/30 hover:border-neutral-700'
+                          )}
+                        >
+                          <button
+                            onClick={() => setActiveFontMutation.mutate(font.family)}
+                            className="flex-1 flex items-center gap-3 text-left"
+                          >
+                            <span
+                              className="text-sm text-white"
+                              style={{ fontFamily: `'${font.family}', sans-serif` }}
+                            >
+                              {font.family}
+                            </span>
+                          </button>
+                          <div className="flex items-center gap-2">
+                            {activeFont === font.family && (
+                              <Check size={16} className="text-[var(--accent-color)]" />
+                            )}
+                            <button
+                              onClick={() => removeFontMutation.mutate(font.family)}
+                              className="p-1.5 text-neutral-500 hover:text-red-400 hover:bg-red-400/10 rounded transition-colors"
+                              title="Remove font"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+
+                      {customFonts.length === 0 && (
+                        <p className="text-sm text-neutral-600 py-4 text-center">
+                          No custom fonts added yet. Add a font from Google Fonts above.
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>

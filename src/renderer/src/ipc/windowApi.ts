@@ -95,6 +95,12 @@ export interface SettingsApi {
   setSettings: (settings: SettingsPatch) => Promise<void>
   getExcludeFullGames: () => Promise<boolean>
   setExcludeFullGames: (excludeFullGames: boolean) => Promise<void>
+  // Custom Fonts
+  getCustomFonts: () => Promise<{ family: string; url: string }[]>
+  addCustomFont: (font: { family: string; url: string }) => Promise<void>
+  removeCustomFont: (family: string) => Promise<void>
+  getActiveFont: () => Promise<string | null>
+  setActiveFont: (family: string | null) => Promise<void>
   // Secure PIN verification - auth state managed in main process
   verifyPin: (pin: string) => Promise<{
     success: boolean

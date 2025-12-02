@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useTransition, useCallback, useRef, useMemo } from 'react'
 import { createPortal } from 'react-dom'
-import { X, Search, User, Gamepad2, Monitor, Hammer, ExternalLink } from 'lucide-react'
+import { Search, User, Gamepad2, Monitor, Hammer, ExternalLink } from 'lucide-react'
 import { Virtuoso } from 'react-virtuoso'
 import { SkeletonUserList } from '../UI/display/SkeletonGrid'
-import { Dialog, DialogContent } from '../UI/dialogs/Dialog'
+import { Dialog, DialogContent, DialogClose } from '../UI/dialogs/Dialog'
 import { ErrorMessage } from '../UI/feedback/ErrorMessage'
 import { EmptyState } from '../UI/feedback/EmptyState'
 import { mapPresenceToStatus, getStatusColor } from '@renderer/utils/statusUtils'
@@ -181,12 +181,7 @@ const UserListModal: React.FC<UserListModalProps> = ({
                 </p>
               </div>
             </div>
-            <button
-              onClick={onClose}
-              className="pressable p-2.5 hover:bg-neutral-800 rounded-full text-neutral-400 hover:text-white transition-colors"
-            >
-              <X size={20} />
-            </button>
+            <DialogClose />
           </div>
 
           {/* Search Bar */}

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react'
-import { X, UserPlus, Loader2, AlertCircle } from 'lucide-react'
+import { UserPlus, Loader2, AlertCircle } from 'lucide-react'
 import { Account } from '@renderer/types'
 import { useNotification } from '@renderer/features/system/stores/useSnackbarStore'
-import { Dialog, DialogContent } from '@renderer/components/UI/dialogs/Dialog'
+import { Dialog, DialogContent, DialogClose } from '@renderer/components/UI/dialogs/Dialog'
 
 interface AddFriendModalProps {
   isOpen: boolean
@@ -78,13 +78,7 @@ const AddFriendModal: React.FC<AddFriendModalProps> = ({
               <p className="text-sm text-neutral-500">Send a friend request</p>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            disabled={isLoading}
-            className="pressable p-1 text-neutral-500 hover:text-white hover:bg-neutral-800 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <X size={20} />
-          </button>
+          <DialogClose disabled={isLoading} />
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">

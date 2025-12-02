@@ -3,6 +3,7 @@ import { useCallback, useEffect } from 'react'
 import { queryKeys } from '../../../../../shared/queryKeys'
 import { Settings, DEFAULT_ACCENT_COLOR } from '@renderer/types'
 import { applyAccentColor } from '@renderer/utils/themeUtils'
+import { initializeFonts, CustomFont } from '@renderer/utils/fontUtils'
 
 // ============================================================================
 // Default Settings
@@ -90,6 +91,22 @@ export function useSettingsManager() {
       applyAccentColor(settings.accentColor)
     }
   }, [settings.accentColor])
+
+  // Initialize custom fonts on first load
+  useEffect(() => {
+    const loadFonts = async () => {
+      try {
+        const [customFonts, activeFont] = await Promise.all([
+          window.api.getCustomFonts(),
+          window.api.getActiveFont()
+        ])
+        await initializeFonts(customFonts as CustomFont[], activeFont)
+      } catch (error) {
+        console.error('Failed to initialize fonts:', error)
+      }
+    }
+    loadFonts()
+  }, []) // Only run once on mount
 
   // Update settings (partial, optimistic)
   const updateSettings = useCallback(

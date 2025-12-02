@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
-import { X, Save, FileText } from 'lucide-react'
+import { Save, FileText } from 'lucide-react'
 import { Account } from '@renderer/types'
-import { Dialog, DialogContent } from '@renderer/components/UI/dialogs/Dialog'
+import { Dialog, DialogContent, DialogClose } from '@renderer/components/UI/dialogs/Dialog'
 
 interface EditNoteModalProps {
   isOpen: boolean
@@ -42,12 +42,7 @@ const EditNoteModal: React.FC<EditNoteModalProps> = ({ isOpen, onClose, onSave, 
               <p className="text-sm text-neutral-500">For @{account.username}</p>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="pressable p-1 text-neutral-500 hover:text-white hover:bg-neutral-800 rounded transition-colors"
-          >
-            <X size={20} />
-          </button>
+          <DialogClose />
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">

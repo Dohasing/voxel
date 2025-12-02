@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
 import {
-  X,
   Plus,
   Cookie,
   ShieldAlert,
@@ -10,7 +9,7 @@ import {
   LogIn,
   Info
 } from 'lucide-react'
-import { Dialog, DialogContent } from '@renderer/components/UI/dialogs/Dialog'
+import { Dialog, DialogContent, DialogClose } from '@renderer/components/UI/dialogs/Dialog'
 import { Tabs } from '@renderer/components/UI/navigation/Tabs'
 
 interface AddAccountModalProps {
@@ -227,13 +226,7 @@ const AddAccountModal: React.FC<AddAccountModalProps> = ({ isOpen, onClose, onAd
               </p>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            disabled={isLoading && method === 'cookie'} // Allow closing in quick login even if loading (polling)
-            className="pressable p-1 text-neutral-500 hover:text-white hover:bg-neutral-800 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <X size={20} />
-          </button>
+          <DialogClose disabled={isLoading && method === 'cookie'} />
         </div>
 
         {/* Tabs */}

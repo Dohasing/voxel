@@ -48,7 +48,16 @@ export const systemApi = {
   // Updates
   getDeployHistory: () => invoke('get-deploy-history', S.deployHistorySchema),
   checkForUpdates: (binaryType: string, currentVersionHash: string) =>
-    invoke('check-for-updates', S.updateCheckSchema, binaryType, currentVersionHash)
+    invoke('check-for-updates', S.updateCheckSchema, binaryType, currentVersionHash),
+
+  // Custom Fonts
+  getCustomFonts: () =>
+    invoke('get-custom-fonts', z.array(z.object({ family: z.string(), url: z.string() }))),
+  addCustomFont: (font: { family: string; url: string }) =>
+    invoke('add-custom-font', z.void(), font),
+  removeCustomFont: (family: string) => invoke('remove-custom-font', z.void(), family),
+  getActiveFont: () => invoke('get-active-font', z.string().nullable()),
+  setActiveFont: (family: string | null) => invoke('set-active-font', z.void(), family)
 }
 
 // ============================================================================
@@ -82,7 +91,9 @@ export const installApi = {
     invoke('set-fflags', z.void(), installPath, flags),
   setActiveInstall: (installPath: string) => invoke('set-active-install', z.void(), installPath),
   removeActiveInstall: () => invoke('remove-active-install', z.void()),
-  getActiveInstallPath: () => invoke('get-active-install-path', z.string().nullable())
+  getActiveInstallPath: () => invoke('get-active-install-path', z.string().nullable()),
+  detectDefaultInstallations: () =>
+    invoke('detect-default-installations', S.detectedInstallationsSchema)
 }
 
 // ============================================================================

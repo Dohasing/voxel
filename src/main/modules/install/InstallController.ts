@@ -95,4 +95,8 @@ export const registerInstallHandlers = (): void => {
   handle('get-active-install-path', z.tuple([]), async () => {
     return RobloxInstallService.getActiveInstallPath()
   })
+
+  handle('detect-default-installations', z.tuple([]), async () => {
+    return RobloxInstallService.detectDefaultInstallations()
+  })
 }

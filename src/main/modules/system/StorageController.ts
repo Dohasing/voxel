@@ -166,4 +166,29 @@ export const registerStorageHandlers = (): void => {
   handle('get-pin-lockout-status', z.tuple([]), async () => {
     return storageService.getPinLockoutStatus()
   })
+
+  // Custom fonts handlers
+  handle('get-custom-fonts', z.tuple([]), async () => {
+    return storageService.getCustomFonts()
+  })
+
+  handle(
+    'add-custom-font',
+    z.tuple([z.object({ family: z.string(), url: z.string() })]),
+    async (_, font) => {
+      storageService.addCustomFont(font)
+    }
+  )
+
+  handle('remove-custom-font', z.tuple([z.string()]), async (_, family) => {
+    storageService.removeCustomFont(family)
+  })
+
+  handle('get-active-font', z.tuple([]), async () => {
+    return storageService.getActiveFont()
+  })
+
+  handle('set-active-font', z.tuple([z.string().nullable()]), async (_, family) => {
+    storageService.setActiveFont(family)
+  })
 }

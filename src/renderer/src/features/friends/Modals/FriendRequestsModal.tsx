@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import {
-  X,
   Users,
   Loader2,
   Check,
@@ -16,7 +15,7 @@ import { Virtuoso } from 'react-virtuoso'
 import { Account } from '@renderer/types'
 import { useNotification } from '@renderer/features/system/stores/useSnackbarStore'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@renderer/components/UI/display/Tooltip'
-import { Dialog, DialogContent } from '@renderer/components/UI/dialogs/Dialog'
+import { Dialog, DialogContent, DialogClose } from '@renderer/components/UI/dialogs/Dialog'
 import UniversalProfileModal from '@renderer/components/Modals/UniversalProfileModal'
 import { ConfirmModal } from '@renderer/components/UI/dialogs/ConfirmModal'
 import { ErrorMessage } from '@renderer/components/UI/feedback/ErrorMessage'
@@ -495,12 +494,7 @@ const FriendRequestsModal: React.FC<FriendRequestsModalProps> = ({
                 </p>
               </div>
             </div>
-            <button
-              onClick={onClose}
-              className="pressable p-2.5 hover:bg-neutral-800 rounded-full text-neutral-400 hover:text-white transition-colors"
-            >
-              <X size={20} />
-            </button>
+            <DialogClose />
           </div>
 
           {/* Search Bar */}

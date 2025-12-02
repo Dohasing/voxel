@@ -8,6 +8,11 @@ import { accountSchema } from '../../../shared/ipc-schemas/user'
 import { favoriteItemSchema } from '../../../shared/ipc-schemas/avatar'
 import { pinService } from './PinService'
 
+const customFontSchema = z.object({
+  family: z.string(),
+  url: z.string()
+})
+
 const storeDataSchema = z.object({
   sidebarWidth: z.number().optional(),
   sidebarCollapsed: z.boolean().optional(),
@@ -19,6 +24,8 @@ const storeDataSchema = z.object({
   favoriteGames: z.array(z.string()).optional(),
   favoriteItems: z.array(favoriteItemSchema).optional(),
   excludeFullGames: z.boolean().optional(),
+  customFonts: z.array(customFontSchema).optional(),
+  activeFont: z.string().nullable().optional(),
   settings: z
     .object({
       primaryAccountId: z.string().nullable().optional(),
@@ -579,6 +586,38 @@ class StorageService {
 
   public setWindowHeight(height: number): void {
     this.data.windowHeight = height
+    this.save()
+  }
+
+  public getCustomFonts(): { family: string; url: string }[] {
+    return this.data.customFonts || []
+  }
+
+  public addCustomFont(font: { family: string; url: string }): void {
+    const fonts = this.data.customFonts || []
+    // Don't add duplicate fonts
+    if (!fonts.some((f) => f.family === font.family)) {
+      this.data.customFonts = [...fonts, font]
+      this.save()
+    }
+  }
+
+  public removeCustomFont(family: string): void {
+    const fonts = this.data.customFonts || []
+    this.data.customFonts = fonts.filter((f) => f.family !== family)
+    // If the active font was removed, reset to default
+    if (this.data.activeFont === family) {
+      this.data.activeFont = null
+    }
+    this.save()
+  }
+
+  public getActiveFont(): string | null {
+    return this.data.activeFont ?? null
+  }
+
+  public setActiveFont(family: string | null): void {
+    this.data.activeFont = family
     this.save()
   }
 }

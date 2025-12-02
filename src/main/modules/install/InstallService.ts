@@ -1,6 +1,7 @@
 import { net, shell } from 'electron'
 import fs from 'fs'
 import path from 'path'
+import os from 'os'
 import { pipeline } from 'stream'
 import { promisify } from 'util'
 import { spawn } from 'child_process'
@@ -10,6 +11,14 @@ import { fflagsSchema } from '@shared/ipc-schemas/system'
 import { deployHistorySchema } from '@shared/ipc-schemas/user'
 
 const streamPipeline = promisify(pipeline)
+
+// Types for detected installations
+export interface DetectedInstallation {
+  path: string
+  version: string
+  binaryType: 'WindowsPlayer' | 'WindowsStudio'
+  exePath: string
+}
 
 // Constants
 const AWS_MIRROR = 'https://setup-aws.rbxcdn.com'
@@ -674,5 +683,61 @@ export class RobloxInstallService {
         }
       )
     })
+  }
+
+  /**
+   * Detects default Roblox installations from the standard Roblox Versions directory
+   * (C:\Users\<user>\AppData\Local\Roblox\Versions\)
+   */
+  static async detectDefaultInstallations(): Promise<DetectedInstallation[]> {
+    const detected: DetectedInstallation[] = []
+
+    try {
+      // Default Roblox install path
+      const robloxVersionsPath = path.join(os.homedir(), 'AppData', 'Local', 'Roblox', 'Versions')
+
+      if (!fs.existsSync(robloxVersionsPath)) {
+        return detected
+      }
+
+      const entries = await fs.promises.readdir(robloxVersionsPath, { withFileTypes: true })
+
+      for (const entry of entries) {
+        // Look for directories named version-<hash>
+        if (!entry.isDirectory() || !entry.name.startsWith('version-')) {
+          continue
+        }
+
+        const versionDir = path.join(robloxVersionsPath, entry.name)
+        const versionHash = entry.name.replace('version-', '')
+
+        // Check for RobloxPlayerBeta.exe
+        const playerExe = path.join(versionDir, 'RobloxPlayerBeta.exe')
+        if (fs.existsSync(playerExe)) {
+          detected.push({
+            path: versionDir,
+            version: versionHash,
+            binaryType: 'WindowsPlayer',
+            exePath: playerExe
+          })
+          continue
+        }
+
+        // Check for RobloxStudioBeta.exe
+        const studioExe = path.join(versionDir, 'RobloxStudioBeta.exe')
+        if (fs.existsSync(studioExe)) {
+          detected.push({
+            path: versionDir,
+            version: versionHash,
+            binaryType: 'WindowsStudio',
+            exePath: studioExe
+          })
+        }
+      }
+    } catch (e) {
+      console.error('[RobloxInstallService] Failed to detect default installations:', e)
+    }
+
+    return detected
   }
 }

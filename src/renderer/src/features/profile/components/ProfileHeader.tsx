@@ -35,6 +35,8 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   rawDescription
 }) => {
   const [isAvatarHovered, setIsAvatarHovered] = useState(false)
+  const [isDragging, setIsDragging] = useState(false)
+  const dragStartPos = React.useRef<{ x: number; y: number } | null>(null)
 
   // Fetch rolimons data to know if badges exist
   const { data: rolimonsPlayer } = useRolimonsPlayer(userId, true)
@@ -49,12 +51,30 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
     return Object.keys(rolimonsPlayer.rolibadges).filter((key) => ROLIMONS_BADGES[key]).length
   }, [rolimonsPlayer?.rolibadges])
 
+  // Calculate minimum height based on content
+  const minHeightPx = useMemo(() => {
+    let baseHeight = 240
+    
+    // Add height for badges
+    if (hasBadges) {
+      baseHeight += 40
+    }
+    
+    // Add height for game activity (only add extra space when in game)
+    if (profile.gameActivity) {
+      baseHeight += 36
+    }
+    
+    return baseHeight
+  }, [hasBadges, profile.gameActivity])
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5, delay: 0 }}
-      className={`relative w-full bg-neutral-900 rounded-xl overflow-hidden border border-neutral-800 flex flex-col ${hasBadges ? 'min-h-[280px]' : 'min-h-[240px]'}`}
+      className="relative w-full bg-neutral-900 rounded-xl overflow-hidden border border-neutral-800 flex flex-col"
+      style={{ minHeight: `${minHeightPx}px` }}
     >
       {/* Background Gradients */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-neutral-800 via-neutral-950 to-black opacity-80" />
@@ -82,7 +102,28 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
                 setIsAvatarHovered(false)
               }
             }}
-            onClick={onAvatarClick}
+            onPointerDown={(e) => {
+              dragStartPos.current = { x: e.clientX, y: e.clientY }
+              setIsDragging(false)
+            }}
+            onPointerMove={(e) => {
+              if (dragStartPos.current && e.buttons > 0) {
+                const dx = Math.abs(e.clientX - dragStartPos.current.x)
+                const dy = Math.abs(e.clientY - dragStartPos.current.y)
+                if (dx > 5 || dy > 5) {
+                  setIsDragging(true)
+                }
+              }
+            }}
+            onPointerUp={() => {
+              dragStartPos.current = null
+            }}
+            onClick={() => {
+              if (!isDragging) {
+                onAvatarClick()
+              }
+              setIsDragging(false)
+            }}
           >
             <motion.div
               className="w-full h-full"
@@ -256,16 +297,14 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
         </div>
       </div>
 
+      {/* Dynamic spacer to push badges to bottom */}
       <div
-        className={`flex-1 ${
-          !hasBadges
-            ? 'min-h-[5px]'
-            : badgeCount <= 4
-              ? 'min-h-[160px]'
-              : badgeCount <= 8
-                ? 'min-h-[170px]'
-                : 'min-h-[180px]'
-        }`}
+        className="flex-1"
+        style={{
+          minHeight: !hasBadges
+            ? '5px'
+            : `${160 + (profile.gameActivity ? 36 : 0) + Math.min(badgeCount, 8) * 2}px`
+        }}
       />
 
       {/* Rolimons Badges */}

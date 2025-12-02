@@ -295,7 +295,7 @@ const UserProfileView: React.FC<ProfileViewProps> = ({
       <Dialog isOpen={isWearingOpen} onClose={() => setIsWearingOpen(false)}>
         <DialogContent className="max-w-3xl bg-neutral-950 border-neutral-800/60">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-3">
+            <DialogTitle className="flex items-center gap-3 pl-0">
               <div className="p-2 bg-neutral-900 rounded-lg">
                 <Shirt size={20} className="text-neutral-300" />
               </div>
@@ -383,7 +383,7 @@ const UserProfileView: React.FC<ProfileViewProps> = ({
       <Dialog isOpen={isOutfitsOpen} onClose={() => setIsOutfitsOpen(false)}>
         <DialogContent className="max-w-3xl bg-neutral-950 border-neutral-800/60">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-3">
+            <DialogTitle className="flex items-center gap-3 pl-0">
               <div className="p-2 bg-neutral-900 rounded-lg">
                 <Package size={20} className="text-neutral-300" />
               </div>
@@ -521,7 +521,7 @@ const UserProfileView: React.FC<ProfileViewProps> = ({
       >
         <DialogContent className="max-w-3xl bg-neutral-950 border-neutral-800/60">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-3">
+            <DialogTitle className="flex items-center gap-3 pl-0">
               <button
                 onClick={() => {
                   setSelectedOutfit(null)
@@ -613,7 +613,7 @@ const UserProfileView: React.FC<ProfileViewProps> = ({
       <Dialog isOpen={isPastNamesOpen} onClose={() => setIsPastNamesOpen(false)}>
         <DialogContent className="max-w-md bg-neutral-950/95 backdrop-blur-xl border-neutral-800">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-3">
+            <DialogTitle className="flex items-center gap-3 pl-0">
               <div className="p-2 bg-neutral-900 rounded-lg">
                 <History size={20} className="text-neutral-300" />
               </div>
