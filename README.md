@@ -2,14 +2,18 @@
   <img src="resources/build/icons/512x512.png" alt="Voxel Logo" width="128" height="128" />
 </p>
 
+
 <h1 align="center">Voxel</h1>
 
 <p align="center">
   <strong>A complete open-source Roblox desktop experience</strong>
 </p>
 
-
 <p align="center">
+<a href="https://github.com/6E6B/voxel/releases">
+    <img src="https://img.shields.io/github/v/release/6E6B/voxel?style=flat-square" alt="Latest Release" />
+  </a>
+  <img src="https://img.shields.io/github/downloads/6E6B/voxel/total?style=flat-square&label=downloads" alt="Total Downloads" />
   <a href="LICENSE"><img src="https://img.shields.io/github/license/6E6B/voxel?style=flat-square" alt="License" /></a>
 </p>
 
@@ -20,7 +24,11 @@
   <img src="https://img.shields.io/badge/-Tailwind_CSS-38B2AC?style=flat-square&logo=tailwind-css&logoColor=white" alt="Tailwind CSS" />
 </p>
 
----
+
+
+
+> [!NOTE]
+> Credentials are stored locally and never leave your machine. They are encrypted using Electron's safeStorage (OS-level credential storage) and optionally with an additional AES-256-GCM layer derived from your PIN.
 
 ## Features
 
@@ -54,7 +62,7 @@
 * Activity logs
 * Command palette (`Ctrl+K`)
 * PIN lock
-
+* 
 ## Installation
 
 Download the latest binary from [Releases](https://github.com/6E6B/voxel/releases).
