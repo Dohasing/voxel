@@ -1,0 +1,96 @@
+{
+  "name": "voxel",
+  "version": "0.1.0",
+  "description": "The open-source Roblox launcher.",
+  "main": "./out/main/index.js",
+  "author": "nick (6E6B)",
+  "homepage": "https://github.com/6E6B/voxel",
+  "build": {
+    "directories": {
+      "buildResources": "resources/build"
+    },
+    "mac": {
+      "icon": "resources/build/icons/icon.icns"
+    },
+    "win": {
+      "icon": "resources/build/icons/icon.ico"
+    },
+    "linux": {
+      "icon": "resources/build/icons"
+    }
+  },
+  "scripts": {
+    "format": "prettier --write .",
+    "lint": "eslint --cache .",
+    "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
+    "typecheck:web": "tsc --noEmit -p tsconfig.web.json --composite false",
+    "typecheck": "npm run typecheck:node && npm run typecheck:web",
+    "start": "electron-vite preview",
+    "dev": "electron-vite dev",
+    "build": "npm run typecheck && electron-vite build",
+    "postinstall": "electron-builder install-app-deps",
+    "build:unpack": "npm run build && electron-builder --dir",
+    "build:win": "npm run build && electron-builder --win",
+    "build:mac": "electron-vite build && electron-builder --mac",
+    "build:linux": "electron-vite build && electron-builder --linux"
+  },
+  "dependencies": {
+    "@electron-toolkit/preload": "^3.0.2",
+    "@electron-toolkit/utils": "^4.0.0",
+    "@radix-ui/react-slider": "^1.3.6",
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.4.2",
+    "@tanstack/react-query": "^5.90.11",
+    "@types/react-syntax-highlighter": "^15.5.13",
+    "@types/three": "^0.181.0",
+    "@types/xml2js": "^0.4.14",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "color": "^5.0.3",
+    "country-flag-icons": "^1.6.3",
+    "framer-motion": "^12.23.24",
+    "fzstd": "^0.1.1",
+    "i18n-iso-countries": "^7.14.0",
+    "koffi": "^2.14.1",
+    "lightweight-charts": "^5.0.9",
+    "lucide-react": "^0.554.0",
+    "lz4js": "^0.2.0",
+    "react-syntax-highlighter": "^16.1.0",
+    "react-virtuoso": "^4.16.1",
+    "roblox-bat": "^0.6.0",
+    "tailwind-merge": "^3.4.0",
+    "three": "^0.181.2",
+    "xml2js": "^0.6.2",
+    "yauzl": "^3.2.0",
+    "zod": "^4.1.12",
+    "zustand": "^5.0.8"
+  },
+  "devDependencies": {
+    "@electron-toolkit/eslint-config-prettier": "^3.0.0",
+    "@electron-toolkit/eslint-config-ts": "^3.1.0",
+    "@electron-toolkit/tsconfig": "^2.0.0",
+    "@tailwindcss/vite": "^4.1.17",
+    "@types/glob": "^8.1.0",
+    "@types/node": "^22.18.6",
+    "@types/react": "^19.1.13",
+    "@types/react-dom": "^19.1.9",
+    "@vitejs/plugin-react": "^5.0.3",
+    "autoprefixer": "^10.4.22",
+    "electron": "^38.1.2",
+    "electron-builder": "^25.1.8",
+    "electron-vite": "^4.0.1",
+    "eslint": "^9.36.0",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.20",
+    "postcss": "^8.5.6",
+    "prettier": "^3.6.2",
+    "react": "^19.1.1",
+    "react-devtools": "^7.0.1",
+    "react-dom": "^19.1.1",
+    "tailwindcss": "^4.1.17",
+    "ts-morph": "^27.0.2",
+    "typescript": "^5.9.2",
+    "vite": "^7.1.6"
+  }
+}
