@@ -301,10 +301,7 @@ class StorageService {
   }
 
   /**
-   * Set a new PIN (will be hashed and encrypted)
-   * Requires current PIN verification if a PIN is already set
-   * Returns false if secure storage is unavailable or verification fails
-   * Re-encrypts all existing cookies with the new PIN encryption layer
+   * Set a new PIN (will be hashed and encrypted)er
    */
   public setPin(
     pin: string | null,
@@ -345,30 +342,23 @@ class StorageService {
       }
     }
 
-    // Get current accounts (decrypted) before changing PIN
-    // This will use the current PIN for decryption if one exists
     const decryptedAccounts = this.getAccounts()
 
     if (pin === null) {
-      // Remove PIN - re-encrypt cookies without PIN layer
       if (this.data.settings) {
         this.data.settings.pinCodeHash = null
       }
       pinService.resetAttempts()
-      pinService.markVerified() // No PIN means always verified
+      pinService.markVerified()
 
-      // Re-save accounts without PIN encryption layer
-      // Since PIN is now removed, saveAccounts will only use OS-level encryption
-      this.save() // Save PIN removal first
+      this.save()
       this.saveAccounts(decryptedAccounts)
       return { success: true }
     }
 
-    // Create secure hash - fail if encryption unavailable
     const hash = pinService.createPinHash(pin)
 
     if (!hash) {
-      // Refuse to store PIN without encryption
       console.error('Secure storage unavailable. PIN will not be stored unencrypted.')
       return { success: false, error: 'Secure storage unavailable' }
     }
@@ -379,24 +369,13 @@ class StorageService {
 
     this.data.settings.pinCodeHash = hash
 
-    // When user sets a PIN, they're authenticated (they just chose it)
-    // Store the new PIN for encryption operations
     pinService.markVerified()
     pinService.resetAttempts()
 
-    // Temporarily set the verified PIN in PinService for re-encryption
-    // We need to manually trigger this since we just created a new hash
+    // Temporarily set the verified PIN in PinService for re-encryption.
     const newEncryptionSalt = pinService.getEncryptionSalt(hash)
     if (newEncryptionSalt && decryptedAccounts.length > 0) {
-      // Re-encrypt all accounts with the new PIN
-      // saveAccounts will use the new PIN hash and encryption salt
-      this.save() // Save new PIN hash first
-
-      // We need to set the verified PIN for saveAccounts to use
-      // Since we just verified/created the PIN, we can use it directly
-      // The PIN verification already stores the PIN in PinService
-      // But for new PINs, we need to manually trigger this
-      // We'll modify PinService to expose a method for this
+      this.save()
       this.reEncryptAccountsWithNewPin(decryptedAccounts, pin, newEncryptionSalt)
     } else {
       this.save()
