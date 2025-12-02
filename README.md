@@ -62,7 +62,7 @@
 * Activity logs
 * Command palette (`Ctrl+K`)
 * PIN lock
-* 
+  
 ## Installation
 
 Download the latest binary from [Releases](https://github.com/6E6B/voxel/releases).
