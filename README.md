@@ -2,7 +2,6 @@
   <img src="resources/build/icons/512x512.png" alt="Voxel Logo" width="128" height="128" />
 </p>
 
-
 <h1 align="center">Voxel</h1>
 
 <p align="center">
@@ -24,54 +23,56 @@
   <img src="https://img.shields.io/badge/-Tailwind_CSS-38B2AC?style=flat-square&logo=tailwind-css&logoColor=white" alt="Tailwind CSS" />
 </p>
 
-
-
-
 > [!NOTE]
 > Credentials are stored locally and never leave your machine. They are encrypted using Electron's safeStorage (OS-level credential storage) and optionally with an additional AES-256-GCM layer derived from your PIN.
 
 ## Features
 
 **Launching**
-* Multi-account management
-* Multi-instance support
-* Join via Place ID, Job ID, or Username
-* Server region viewing
-* Player & Studio version manager
+
+- Multi-account management
+- Multi-instance support
+- Join via Place ID, Job ID, or Username
+- Server region viewing
+- Player & Studio version manager
 
 **Avatar**
-* 3D avatar editor
-* Outfit management
-* Inventory browser
-* Accessory instance tree viewing
+
+- 3D avatar editor
+- Outfit management
+- Inventory browser
+- Accessory instance tree viewing
 
 **Catalog & Economy**
-* Catalog browser
-* Transaction history
-* Sales analytics
-* Rolimons integration
+
+- Catalog browser
+- Transaction history
+- Sales analytics
+- Rolimons integration
 
 **Social**
-* Real-time friend presence
-* Groups
-* Quick join
+
+- Real-time friend presence
+- Groups
+- Quick join
 
 **Tools**
-* FFlags editor
-* Asset downloader
-* Activity logs
-* Command palette (`Ctrl+K`)
-* PIN lock
-  
+
+- FFlags editor
+- Asset downloader
+- Activity logs
+- Command palette (`Ctrl+K`)
+- PIN lock
+
 ## Installation
 
 Download the latest binary from [Releases](https://github.com/6E6B/voxel/releases).
 
-| Platform | Filename |
-| :--- | :--- |
+| Platform    | Filename                |
+| :---------- | :---------------------- |
 | **Windows** | `voxel-x.x.x-setup.exe` |
-| **macOS** | `voxel-x.x.x.dmg` |
-| **Linux** | `voxel-x.x.x.AppImage` |
+| **macOS**   | `voxel-x.x.x.dmg`       |
+| **Linux**   | `voxel-x.x.x.AppImage`  |
 
 ## Build from Source
 
@@ -90,3 +91,4 @@ npm run dev
 
 # Build
 npm run build:win   # or build:mac, build:linux
+```

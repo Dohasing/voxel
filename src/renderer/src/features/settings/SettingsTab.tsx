@@ -1,5 +1,17 @@
 import React, { useState, useEffect } from 'react'
-import { Users, HardDrive, Palette, Bell, Lock, Shield, Sliders, Type, Plus, Trash2, Check } from 'lucide-react'
+import {
+  Users,
+  HardDrive,
+  Palette,
+  Bell,
+  Lock,
+  Shield,
+  Sliders,
+  Type,
+  Plus,
+  Trash2,
+  Check
+} from 'lucide-react'
 import { motion } from 'framer-motion'
 import Color from 'color'
 import { useQueryClient, useQuery, useMutation } from '@tanstack/react-query'
@@ -50,7 +62,9 @@ interface SettingsTabProps {
 }
 
 const SettingsTab: React.FC<SettingsTabProps> = ({ accounts, settings, onUpdateSettings }) => {
-  const [activeTab, setActiveTab] = useState<'general' | 'appearance' | 'notifications' | 'security'>('general')
+  const [activeTab, setActiveTab] = useState<
+    'general' | 'appearance' | 'notifications' | 'security'
+  >('general')
   const [isColorPickerOpen, setIsColorPickerOpen] = useState(false)
   const [isPinDialogOpen, setIsPinDialogOpen] = useState(false)
   const [newFontFamily, setNewFontFamily] = useState('')
@@ -264,7 +278,9 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ accounts, settings, onUpdateS
               onClick={() => setActiveTab('appearance')}
               className={cn(
                 'flex-1 py-4 text-sm font-medium transition-colors flex items-center justify-center gap-2 relative z-10 hover:bg-neutral-900/50 active:bg-neutral-900',
-                activeTab === 'appearance' ? 'text-white' : 'text-neutral-500 hover:text-neutral-300'
+                activeTab === 'appearance'
+                  ? 'text-white'
+                  : 'text-neutral-500 hover:text-neutral-300'
               )}
             >
               <Type size={16} />
@@ -443,9 +459,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ accounts, settings, onUpdateS
             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-300">
               <div>
                 <h3 className="text-lg font-semibold text-white mb-1">Appearance</h3>
-                <p className="text-sm text-neutral-400 mb-6">
-                  Customize fonts and visual styles.
-                </p>
+                <p className="text-sm text-neutral-400 mb-6">Customize fonts and visual styles.</p>
 
                 <div className="space-y-6">
                   {/* Custom Fonts Section */}
@@ -489,9 +503,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ accounts, settings, onUpdateS
                       </button>
                     </div>
 
-                    {fontError && (
-                      <p className="text-xs text-red-400 mt-1">{fontError}</p>
-                    )}
+                    {fontError && <p className="text-xs text-red-400 mt-1">{fontError}</p>}
 
                     <p className="text-xs text-neutral-600 mt-1">
                       Browse available fonts at{' '}
@@ -508,9 +520,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ accounts, settings, onUpdateS
 
                   {/* Active Font Selection */}
                   <div className="flex flex-col space-y-2">
-                    <label className="text-sm font-medium text-neutral-400">
-                      Active Font
-                    </label>
+                    <label className="text-sm font-medium text-neutral-400">Active Font</label>
                     <p className="text-xs text-neutral-500 mb-2">
                       Select which font to use for the application interface.
                     </p>

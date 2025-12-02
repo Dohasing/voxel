@@ -54,17 +54,17 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   // Calculate minimum height based on content
   const minHeightPx = useMemo(() => {
     let baseHeight = 240
-    
+
     // Add height for badges
     if (hasBadges) {
       baseHeight += 40
     }
-    
+
     // Add height for game activity (only add extra space when in game)
     if (profile.gameActivity) {
       baseHeight += 36
     }
-    
+
     return baseHeight
   }, [hasBadges, profile.gameActivity])
 

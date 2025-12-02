@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import {
   HardDrive,
@@ -136,7 +136,8 @@ const InstallTab: React.FC = () => {
     const userInstalls: UnifiedInstallation[] = installations.map((install) => ({
       id: install.id,
       name: install.name,
-      binaryType: install.binaryType === BinaryType.WindowsStudio ? 'WindowsStudio' : 'WindowsPlayer',
+      binaryType:
+        install.binaryType === BinaryType.WindowsStudio ? 'WindowsStudio' : 'WindowsPlayer',
       version: install.version,
       channel: install.channel,
       path: install.path,
@@ -146,18 +147,20 @@ const InstallTab: React.FC = () => {
       detected: null
     }))
 
-    const detectedInstalls: UnifiedInstallation[] = filteredDetectedInstallations.map((detected) => ({
-      id: `detected-${detected.path}`,
-      name: detected.binaryType === 'WindowsStudio' ? 'Roblox Studio' : 'Roblox Player',
-      binaryType: detected.binaryType,
-      version: detected.version,
-      channel: 'Default',
-      path: detected.path,
-      status: 'Ready' as const,
-      isSystem: true,
-      original: null,
-      detected: detected
-    }))
+    const detectedInstalls: UnifiedInstallation[] = filteredDetectedInstallations.map(
+      (detected) => ({
+        id: `detected-${detected.path}`,
+        name: detected.binaryType === 'WindowsStudio' ? 'Roblox Studio' : 'Roblox Player',
+        binaryType: detected.binaryType,
+        version: detected.version,
+        channel: 'Default',
+        path: detected.path,
+        status: 'Ready' as const,
+        isSystem: true,
+        original: null,
+        detected: detected
+      })
+    )
 
     return [...userInstalls, ...detectedInstalls]
   }, [installations, filteredDetectedInstallations])
@@ -315,9 +318,10 @@ const InstallTab: React.FC = () => {
 
   const handleVerify = (install: UnifiedInstallation) => {
     // Get the binary type for API call
-    const binaryType = install.original?.binaryType ?? 
+    const binaryType =
+      install.original?.binaryType ??
       (install.binaryType === 'WindowsStudio' ? BinaryType.WindowsStudio : BinaryType.WindowsPlayer)
-    
+
     setConfirmModal({
       isOpen: true,
       title: 'Verify Files',
@@ -338,11 +342,7 @@ const InstallTab: React.FC = () => {
 
         try {
           // @ts-ignore
-          await window.api.verifyRobloxFiles(
-            getApiType(binaryType),
-            install.version,
-            install.path
-          )
+          await window.api.verifyRobloxFiles(getApiType(binaryType), install.version, install.path)
 
           // Only update store for user installations
           if (!install.isSystem) {
@@ -386,7 +386,10 @@ const InstallTab: React.FC = () => {
                   onClick={async () => {
                     try {
                       // @ts-ignore
-                      await window.api.getDeployHistory().then(setDeployHistory).catch(console.error)
+                      await window.api
+                        .getDeployHistory()
+                        .then(setDeployHistory)
+                        .catch(console.error)
                       // Also refresh detected installations
                       // @ts-ignore
                       const detected = await window.api.detectDefaultInstallations()
@@ -404,11 +407,7 @@ const InstallTab: React.FC = () => {
               </TooltipTrigger>
               <TooltipContent>Refresh version history and installations</TooltipContent>
             </Tooltip>
-            <Button
-              variant="default"
-              onClick={() => setShowNewModal(true)}
-              className="gap-2.5"
-            >
+            <Button variant="default" onClick={() => setShowNewModal(true)} className="gap-2.5">
               <Plus size={18} />
               <span>New Installation</span>
             </Button>
@@ -538,16 +537,7 @@ const InstallTab: React.FC = () => {
                     {/* Launch Button */}
                     <div className="px-4 pb-4">
                       <button
-                        onClick={async () => {
-                          showNotification('Launching Roblox...', 'info')
-                          try {
-                            // @ts-ignore
-                            await window.api.launchRobloxInstall(install.path)
-                            showNotification('Roblox launched successfully', 'success')
-                          } catch (err) {
-                            showNotification('Failed to launch: ' + err, 'error')
-                          }
-                        }}
+                        onClick={() => handleLaunch(install)}
                         disabled={isThisVerifying}
                         className="pressable w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-white text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
@@ -792,16 +782,20 @@ const InstallTab: React.FC = () => {
                   ]
                 },
                 // Only show delete option for non-system installations
-                ...(!contextMenu.install.isSystem ? [{
-                  items: [
-                    {
-                      label: 'Delete',
-                      icon: <Trash2 size={14} />,
-                      onClick: () => contextMenu.install && handleDelete(contextMenu.install),
-                      variant: 'danger' as const
-                    }
-                  ]
-                }] : [])
+                ...(!contextMenu.install.isSystem
+                  ? [
+                      {
+                        items: [
+                          {
+                            label: 'Delete',
+                            icon: <Trash2 size={14} />,
+                            onClick: () => contextMenu.install && handleDelete(contextMenu.install),
+                            variant: 'danger' as const
+                          }
+                        ]
+                      }
+                    ]
+                  : [])
               ]
             : []
         }
