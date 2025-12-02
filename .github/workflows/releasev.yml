@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - main
+      - win-build
 
 jobs:
   build-win-x64:
@@ -24,3 +25,13 @@ jobs:
 
       - name: Build Electron app for Windows x64
         run: npm run build:win
+
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: voxel-windows-x64
+          path: |
+            dist/*.exe
+            dist/*.msi
+            dist/*.zip
+            dist/*.blockmap
