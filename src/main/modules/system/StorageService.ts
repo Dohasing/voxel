@@ -54,7 +54,6 @@ class StorageService {
   private init(): void {
     try {
       if (!existsSync(this.path)) {
-        // Create directory if it doesn't exist (though userData usually exists)
         const dir = app.getPath('userData')
         if (!existsSync(dir)) {
           mkdirSync(dir, { recursive: true })
@@ -183,8 +182,6 @@ class StorageService {
             if (pinDecrypted) {
               decryptedCookie = pinDecrypted
             } else {
-              // If PIN decryption fails, the cookie might be from before PIN was set
-              // or already in plain form (legacy). Try to use it as-is.
               console.warn(
                 `PIN decryption failed for account ${account.username}, using OS-decrypted value`
               )
@@ -194,8 +191,6 @@ class StorageService {
           return { ...account, cookie: decryptedCookie }
         } catch (error) {
           console.error(`Failed to decrypt cookie for account ${account.username}:`, error)
-          // Return with original (encrypted) cookie or empty string?
-          // If decryption fails, the cookie is useless anyway.
           return account
         }
       }
