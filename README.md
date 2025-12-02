@@ -10,9 +10,6 @@
 
 
 <p align="center">
-  <a href="https://github.com/6E6B/voxel/releases"><img src="https://img.shields.io/github/v/release/6E6B/voxel?style=flat-square" alt="Latest Release" /></a>
-  <img src="https://img.shields.io/github/downloads/6E6B/voxel/total?style=flat-square&label=downloads" alt="Downloads" />
-  <img src="https://img.shields.io/github/repo-size/6E6B/voxel?style=flat-square" alt="Size" />
   <a href="LICENSE"><img src="https://img.shields.io/github/license/6E6B/voxel?style=flat-square" alt="License" /></a>
 </p>
 
