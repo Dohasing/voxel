@@ -76,7 +76,7 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 8, scale: 0.95 }}
           transition={{ duration: 0.15, ease: 'easeOut' }}
-          className="fixed bg-neutral-900 border border-neutral-800 rounded-xl shadow-2xl z-[1100] overflow-hidden"
+          className="fixed bg-neutral-900 border border-neutral-800 rounded-xl shadow-2xl z-[10000] overflow-hidden"
           style={{
             top: menuPosition.top,
             left: menuPosition.left,

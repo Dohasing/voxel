@@ -1,10 +1,11 @@
 import React from 'react'
-import { motion } from 'framer-motion'
-import { ChevronRight, Sparkles, Music, TrendingUp, Flame, Star } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { ChevronRight, ChevronLeft, Sparkles, Music, TrendingUp, Flame, Star } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@renderer/components/UI/display/Tooltip'
 import { SkeletonSquareCard } from '@renderer/components/UI/display/SkeletonCard'
 import { TruncatedTextWithTooltip } from './TruncatedTextWithTooltip'
 import { useRolimonsItem } from '@renderer/hooks/queries'
+import { useHorizontalScroll } from '@renderer/hooks/useHorizontalScroll'
 
 const SOUND_HAT_IDS = [24114402, 305888394, 24112667, 33070696]
 
@@ -28,6 +29,8 @@ export const CollectionsSection: React.FC<CollectionsSectionProps> = ({
   onItemClick,
   onViewAllClick
 }) => {
+  const { scrollRef, canScrollLeft, canScrollRight, scroll } = useHorizontalScroll([collections])
+
   if (!isLoading && collections.length === 0) return null
 
   return (
@@ -47,25 +50,61 @@ export const CollectionsSection: React.FC<CollectionsSectionProps> = ({
         </button>
       </div>
 
-      <div className="flex flex-wrap gap-4">
+      <div className="relative overflow-visible">
+        {/* Left scroll button */}
+        <AnimatePresence>
+          {canScrollLeft && (
+            <motion.button
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              transition={{ duration: 0.15 }}
+              onClick={() => scroll('left')}
+              className="absolute -left-3 top-1/2 -translate-y-1/2 z-20 w-10 h-10 flex items-center justify-center bg-neutral-800 hover:bg-neutral-700 rounded-full shadow-lg transition-colors border border-neutral-700"
+              aria-label="Scroll left"
+            >
+              <ChevronLeft size={24} className="text-white" />
+            </motion.button>
+          )}
+        </AnimatePresence>
+        {/* Right scroll button */}
+        <AnimatePresence>
+          {canScrollRight && (
+            <motion.button
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              transition={{ duration: 0.15 }}
+              onClick={() => scroll('right')}
+              className="absolute -right-3 top-1/2 -translate-y-1/2 z-20 w-10 h-10 flex items-center justify-center bg-neutral-800 hover:bg-neutral-700 rounded-full shadow-lg transition-colors border border-neutral-700"
+              aria-label="Scroll right"
+            >
+              <ChevronRight size={24} className="text-white" />
+            </motion.button>
+          )}
+        </AnimatePresence>
+        {/* Left fade gradient */}
+        {canScrollLeft && (
+          <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-[rgb(16,16,16)] to-transparent z-10 pointer-events-none" />
+        )}
+        {/* Right fade gradient */}
+        {canScrollRight && (
+          <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-[rgb(16,16,16)] to-transparent z-10 pointer-events-none" />
+        )}
+        <div ref={scrollRef} className="overflow-x-auto pb-2 scrollbar-hide">
+          <div className="flex gap-3 px-1">
         {isLoading
-          ? Array.from({ length: 4 }).map((_, i) => (
-              <div
-                key={i}
-                className="w-[calc(50%-8px)] sm:w-[calc(33.333%-11px)] md:w-[calc(25%-12px)] lg:w-[calc(16.666%-14px)]"
-              >
+          ? Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="w-[calc(25%-9px)] shrink-0">
                 <SkeletonSquareCard />
               </div>
             ))
-          : collections.map((item) => {
+          : collections.slice(0, 6).map((item) => {
               const isLimited = item.cssTag === 'limited' || item.cssTag === 'limited-unique'
               const isLimitedUnique = item.cssTag === 'limited-unique'
               const isSoundHat = SOUND_HAT_IDS.includes(item.id)
               return (
-                <div
-                  key={item.id}
-                  className="w-[calc(50%-8px)] sm:w-[calc(33.333%-11px)] md:w-[calc(25%-12px)] lg:w-[calc(16.666%-14px)]"
-                >
+                <div key={item.id} className="w-[calc(25%-9px)] shrink-0">
                   <CollectionItemCard
                     item={item}
                     isLimited={isLimited}
@@ -76,6 +115,8 @@ export const CollectionsSection: React.FC<CollectionsSectionProps> = ({
                 </div>
               )
             })}
+          </div>
+        </div>
       </div>
       {!isLoading && collections.length === 0 && (
         <div className="col-span-5 text-neutral-500 text-sm py-4 text-center">

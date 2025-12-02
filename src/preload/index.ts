@@ -17,7 +17,8 @@ import {
   netlogApi,
   authApi,
   rolimonsApi,
-  transactionsApi
+  transactionsApi,
+  updaterApi
 } from './api'
 
 // Merge all domain APIs into a single api object
@@ -36,7 +37,8 @@ const api = {
   ...installApi,
   ...rolimonsApi,
   ...netlogApi,
-  ...transactionsApi
+  ...transactionsApi,
+  ...updaterApi
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

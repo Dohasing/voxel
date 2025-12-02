@@ -3,7 +3,7 @@ import { randomBytes, pbkdf2Sync, timingSafeEqual, createCipheriv, createDeciphe
 
 // Security constants
 const SALT_LENGTH = 32
-const HASH_ITERATIONS = 100000 // High iteration count for security
+const HASH_ITERATIONS = 350000 // High iteration count for security
 const HASH_KEY_LENGTH = 64
 const HASH_DIGEST = 'sha512'
 

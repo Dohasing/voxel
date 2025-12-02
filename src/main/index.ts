@@ -1,13 +1,16 @@
 /// <reference types="electron-vite/node" />
-import { app, shell, BrowserWindow, ipcMain, session, netLog } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, session } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/build/icons/icon.ico?asset'
-import { registerRobloxHandlers } from './modules/core/RobloxHandler'
-import { registerStorageHandlers } from './modules/system/StorageController'
-import { registerLogsHandlers } from './modules/system/LogsController'
-import { storageService } from './modules/system/StorageService'
-import { pinService } from './modules/system/PinService'
+
+// Lazy imports - these will be loaded after window is shown
+let registerRobloxHandlers: typeof import('./modules/core/RobloxHandler').registerRobloxHandlers
+let registerStorageHandlers: typeof import('./modules/system/StorageController').registerStorageHandlers
+let registerLogsHandlers: typeof import('./modules/system/LogsController').registerLogsHandlers
+let registerUpdaterHandlers: typeof import('./modules/updater/UpdaterController').registerUpdaterHandlers
+let storageService: typeof import('./modules/system/StorageService').storageService
+let pinService: typeof import('./modules/system/PinService').pinService
 
 // Handle EPIPE errors globally to prevent crashes when writing to closed streams
 process.on('uncaughtException', (error) => {
@@ -17,41 +20,15 @@ process.on('uncaughtException', (error) => {
   console.error('Uncaught exception:', error)
 })
 
-const netLogPath = join(app.getPath('userData'), 'net-logs')
-const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
-const logFile = join(netLogPath, `network-log-${timestamp}.json`)
-
-netLog
-  .startLogging(logFile, {
-    captureMode: 'everything', // Capture all network events
-    maxFileSize: 100 * 1024 * 1024 // 100MB max file size
-  })
-  .then(() => {})
-  .catch((err) => {
-    console.error('Failed to start net-log:', err)
-  })
-
-// Stop logging when app is about to quit
-app.on('will-quit', async (event) => {
-  if (netLog.currentlyLogging) {
-    event.preventDefault()
-    await netLog.stopLogging()
-
-    app.quit()
-  }
-})
-
-function createWindow(): void {
-  // Get saved window size or use defaults
-  const savedWidth = storageService.getWindowWidth()
-  const savedHeight = storageService.getWindowHeight()
+function createWindow(): BrowserWindow {
   const defaultWidth = 1400
   const defaultHeight = 900
 
-  // Create the browser window.
+  // Create the browser window immediately with defaults
+  // Window size from storage will be applied after lazy load
   const mainWindow = new BrowserWindow({
-    width: savedWidth ?? defaultWidth,
-    height: savedHeight ?? defaultHeight,
+    width: defaultWidth,
+    height: defaultHeight,
     show: false,
     autoHideMenuBar: true,
     icon,
@@ -69,20 +46,31 @@ function createWindow(): void {
     }
   })
 
-  // Save window size when it's resized
+  // Save window size when it's resized (storageService loaded lazily)
   let resizeTimeout: NodeJS.Timeout | null = null
   mainWindow.on('resized', () => {
     if (resizeTimeout) {
       clearTimeout(resizeTimeout)
     }
     resizeTimeout = setTimeout(() => {
-      const [width, height] = mainWindow.getSize()
-      storageService.setWindowWidth(width)
-      storageService.setWindowHeight(height)
+      if (storageService) {
+        const [width, height] = mainWindow.getSize()
+        storageService.setWindowWidth(width)
+        storageService.setWindowHeight(height)
+      }
     }, 500) // Debounce: save 500ms after resize stops
   })
 
   mainWindow.on('ready-to-show', () => {
+    // Apply saved window size after showing (non-blocking)
+    if (storageService) {
+      const savedWidth = storageService.getWindowWidth()
+      const savedHeight = storageService.getWindowHeight()
+      if (savedWidth && savedHeight) {
+        mainWindow.setSize(savedWidth, savedHeight, true)
+        mainWindow.center()
+      }
+    }
     mainWindow.show()
   })
 
@@ -98,12 +86,14 @@ function createWindow(): void {
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
+
+  return mainWindow
 }
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   // Set app user model id for windows
   electronApp.setAppUserModelId('com.voxel.app')
 
@@ -138,53 +128,53 @@ app.whenReady().then(() => {
     }
   )
 
-  registerRobloxHandlers()
-  registerStorageHandlers()
-  registerLogsHandlers()
+  // Lazy load heavy modules after window creation starts
+  const loadModules = async () => {
+    const [
+      robloxHandler,
+      storageController,
+      logsController,
+      updaterController,
+      storageModule,
+      pinModule
+    ] = await Promise.all([
+      import('./modules/core/RobloxHandler'),
+      import('./modules/system/StorageController'),
+      import('./modules/system/LogsController'),
+      import('./modules/updater/UpdaterController'),
+      import('./modules/system/StorageService'),
+      import('./modules/system/PinService')
+    ])
+
+    registerRobloxHandlers = robloxHandler.registerRobloxHandlers
+    registerStorageHandlers = storageController.registerStorageHandlers
+    registerLogsHandlers = logsController.registerLogsHandlers
+    registerUpdaterHandlers = updaterController.registerUpdaterHandlers
+    storageService = storageModule.storageService
+    pinService = pinModule.pinService
+
+    return {
+      registerRobloxHandlers,
+      registerStorageHandlers,
+      registerLogsHandlers,
+      registerUpdaterHandlers,
+      pinService
+    }
+  }
+
+  // Create window immediately for fast perceived startup
+  const mainWindow = createWindow()
+
+  // Load modules in parallel while window is loading
+  const modules = await loadModules()
+
+  // Register handlers after modules are loaded
+  modules.registerRobloxHandlers()
+  modules.registerStorageHandlers()
+  modules.registerLogsHandlers()
 
   // Initialize PIN service (loads persisted lockout state)
-  pinService.initialize()
-
-  // Net-log IPC handlers
-  ipcMain.handle('net-log:get-status', () => {
-    return {
-      isLogging: netLog.currentlyLogging,
-      logPath: netLog.currentlyLogging ? logFile : null
-    }
-  })
-
-  ipcMain.handle('net-log:get-log-path', () => {
-    return logFile
-  })
-
-  ipcMain.handle('net-log:stop', async () => {
-    if (netLog.currentlyLogging) {
-      await netLog.stopLogging()
-
-      return { success: true, message: 'Logging stopped' }
-    }
-    return { success: false, message: 'Net-log was not running' }
-  })
-
-  ipcMain.handle('net-log:start', async () => {
-    if (!netLog.currentlyLogging) {
-      const newTimestamp = new Date().toISOString().replace(/[:.]/g, '-')
-      const newLogFile = join(netLogPath, `network-log-${newTimestamp}.json`)
-
-      try {
-        await netLog.startLogging(newLogFile, {
-          captureMode: 'everything',
-          maxFileSize: 100 * 1024 * 1024
-        })
-
-        return { success: true, message: 'Logging started', path: newLogFile }
-      } catch (err) {
-        console.error('Failed to start net-log:', err)
-        return { success: false, message: `Failed to start: ${err}` }
-      }
-    }
-    return { success: false, message: 'Net-log is already running' }
-  })
+  modules.pinService.initialize()
 
   // Helper for CORS headers
   const UpsertKeyValue = (obj: Record<string, any>, keyToChange: string, value: any) => {
@@ -220,12 +210,25 @@ app.whenReady().then(() => {
     callback({ responseHeaders })
   })
 
-  createWindow()
+  // IPC handler to focus and bring window to top (for onboarding)
+  ipcMain.handle('focus-window', () => {
+    if (mainWindow) {
+      mainWindow.setAlwaysOnTop(true)
+      mainWindow.focus()
+      mainWindow.setAlwaysOnTop(false)
+    }
+  })
+
+  // Register updater handlers with main window reference
+  modules.registerUpdaterHandlers(mainWindow)
 
   app.on('activate', function () {
     // On macOS it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.
-    if (BrowserWindow.getAllWindows().length === 0) createWindow()
+    if (BrowserWindow.getAllWindows().length === 0) {
+      const newWindow = createWindow()
+      modules.registerUpdaterHandlers(newWindow)
+    }
   })
 })
 

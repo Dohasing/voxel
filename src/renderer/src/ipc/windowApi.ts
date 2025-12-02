@@ -37,7 +37,9 @@ import type {
   GroupStoreResponse,
   TransactionTypes,
   TransactionsResponse,
-  TransactionTypeEnum
+  TransactionTypeEnum,
+  UpdateState,
+  UpdateActionResult
 } from '../../../shared/ipc-schemas/index'
 
 export interface AccountApi {
@@ -83,6 +85,9 @@ export interface FavoritesApi {
 }
 
 export interface SettingsApi {
+  // Window control
+  focusWindow: () => Promise<void>
+
   getSidebarWidth: () => Promise<number | undefined>
   setSidebarWidth: (width: number) => Promise<void>
   getSidebarCollapsed: () => Promise<boolean>
@@ -644,6 +649,14 @@ export interface TransactionsApi {
   ) => Promise<TransactionTotals>
 }
 
+export interface UpdaterApi {
+  checkForUpdates: () => Promise<UpdateState>
+  downloadUpdate: () => Promise<UpdateActionResult>
+  installUpdate: () => Promise<UpdateActionResult>
+  getUpdaterState: () => Promise<UpdateState>
+  onUpdaterStatus: (callback: (state: UpdateState) => void) => () => void
+}
+
 export type WindowApi = AccountApi &
   FavoritesApi &
   SettingsApi &
@@ -659,4 +672,5 @@ export type WindowApi = AccountApi &
   NetLogApi &
   CatalogApi &
   GroupsApi &
-  TransactionsApi
+  TransactionsApi &
+  UpdaterApi

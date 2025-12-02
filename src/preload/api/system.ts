@@ -7,6 +7,9 @@ import * as S from '../../shared/ipc-schemas'
 // ============================================================================
 
 export const systemApi = {
+  // Window control
+  focusWindow: () => invoke('focus-window', z.void()),
+
   // Sidebar settings
   getSidebarWidth: () => invoke('get-sidebar-width', z.number().optional()),
   setSidebarWidth: (width: number) => invoke('set-sidebar-width', z.void(), width),

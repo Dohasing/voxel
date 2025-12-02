@@ -10,7 +10,8 @@ import {
   Type,
   Plus,
   Trash2,
-  Check
+  Check,
+  Info
 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import Color from 'color'
@@ -54,6 +55,7 @@ import {
   applyFont,
   isValidGoogleFontFamily
 } from '../../utils/fontUtils'
+import { UpdaterCard } from '../updater'
 
 interface SettingsTabProps {
   accounts: Account[]
@@ -63,7 +65,7 @@ interface SettingsTabProps {
 
 const SettingsTab: React.FC<SettingsTabProps> = ({ accounts, settings, onUpdateSettings }) => {
   const [activeTab, setActiveTab] = useState<
-    'general' | 'appearance' | 'notifications' | 'security'
+    'general' | 'appearance' | 'notifications' | 'security' | 'about'
   >('general')
   const [isColorPickerOpen, setIsColorPickerOpen] = useState(false)
   const [isPinDialogOpen, setIsPinDialogOpen] = useState(false)
@@ -254,11 +256,13 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ accounts, settings, onUpdateS
                   activeTab === 'general'
                     ? '0%'
                     : activeTab === 'appearance'
-                      ? '25%'
+                      ? '20%'
                       : activeTab === 'notifications'
-                        ? '50%'
-                        : '75%',
-                width: '25%'
+                        ? '40%'
+                        : activeTab === 'security'
+                          ? '60%'
+                          : '80%',
+                width: '20%'
               }}
               transition={{ type: 'spring', stiffness: 500, damping: 35 }}
             />
@@ -309,6 +313,17 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ accounts, settings, onUpdateS
             >
               <Shield size={16} />
               Security
+            </button>
+
+            <button
+              onClick={() => setActiveTab('about')}
+              className={cn(
+                'flex-1 py-4 text-sm font-medium transition-colors flex items-center justify-center gap-2 relative z-10 hover:bg-neutral-900/50 active:bg-neutral-900',
+                activeTab === 'about' ? 'text-white' : 'text-neutral-500 hover:text-neutral-300'
+              )}
+            >
+              <Info size={16} />
+              About
             </button>
           </div>
         </div>
@@ -714,6 +729,58 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ accounts, settings, onUpdateS
                       >
                         {settings.pinCode ? 'PIN Enabled - Click to Manage' : 'Set Up PIN'}
                       </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* About Settings */}
+          {activeTab === 'about' && (
+            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-300">
+              <div>
+                <h3 className="text-lg font-semibold text-white mb-1">About</h3>
+                <p className="text-sm text-neutral-400 mb-6">
+                  Application information and updates.
+                </p>
+
+                <div className="space-y-6">
+                  {/* Updates Section */}
+                  <div className="flex flex-col space-y-2">
+                    <label className="text-sm font-medium text-neutral-400 flex items-center">
+                      <Info size={16} className="mr-2" />
+                      Updates
+                    </label>
+                    <p className="text-xs text-neutral-500 mb-2">
+                      Check for and install application updates.
+                    </p>
+                    <UpdaterCard />
+                  </div>
+
+                  {/* App Info */}
+                  <div className="p-4 bg-neutral-900/30 rounded-lg border border-neutral-800/50">
+                    <h4 className="text-sm font-medium text-white mb-3">Voxel</h4>
+                    <p className="text-xs text-neutral-500 mb-3">
+                      The open-source Roblox launcher.
+                    </p>
+                    <div className="flex gap-4">
+                      <a
+                        href="https://github.com/6E6B/voxel"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-[var(--accent-color)] hover:underline"
+                      >
+                        GitHub Repository
+                      </a>
+                      <a
+                        href="https://github.com/6E6B/voxel/issues"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-[var(--accent-color)] hover:underline"
+                      >
+                        Report an Issue
+                      </a>
                     </div>
                   </div>
                 </div>

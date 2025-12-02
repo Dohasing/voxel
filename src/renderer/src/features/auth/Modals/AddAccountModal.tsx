@@ -232,7 +232,7 @@ const AddAccountModal: React.FC<AddAccountModalProps> = ({ isOpen, onClose, onAd
         {/* Tabs */}
         <Tabs
           tabs={[
-            { id: 'quick', label: 'Quick Log In', icon: Smartphone },
+            { id: 'quick', label: 'Code', icon: Smartphone },
             { id: 'cookie', label: 'Cookie', icon: Cookie },
             { id: 'browser', label: 'Login', icon: LogIn }
           ]}

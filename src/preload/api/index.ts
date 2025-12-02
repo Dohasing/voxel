@@ -21,3 +21,6 @@ export { rolimonsApi } from './rolimons'
 
 // Transactions
 export { transactionsApi } from './transactions'
+
+// Updater
+export { updaterApi } from './updater'

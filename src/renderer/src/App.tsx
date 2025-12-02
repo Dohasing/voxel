@@ -28,6 +28,7 @@ import AvatarTab from './features/avatar/index'
 import InstallTab from './features/install/index'
 import CommandPalette from './features/command-palette/index'
 import PinLockScreen from './components/UI/security/PinLockScreen'
+import { OnboardingScreen, useHasCompletedOnboarding } from './features/onboarding'
 import { useSidebarResize } from './hooks/useSidebarResize'
 import { useClickOutside } from './hooks/useClickOutside'
 import { useNotification } from './features/system/stores/useSnackbarStore'
@@ -82,6 +83,9 @@ interface JoinConfig {
 const App: React.FC = () => {
   const { showNotification } = useNotification()
   const queryClient = useQueryClient()
+
+  // Onboarding state
+  const hasCompletedOnboarding = useHasCompletedOnboarding()
 
   // App lock state
   const isAppUnlocked = useAppUnlocked()
@@ -755,6 +759,9 @@ const App: React.FC = () => {
       <AnimatePresence>
         {settings.pinCode && !isAppUnlocked && <PinLockScreen onUnlock={handlePinUnlock} />}
       </AnimatePresence>
+
+      {/* Onboarding Screen Overlay */}
+      <AnimatePresence>{!hasCompletedOnboarding && <OnboardingScreen />}</AnimatePresence>
     </div>
   )
 }
