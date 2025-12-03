@@ -31,8 +31,6 @@ export class RobloxInventoryService {
   ) {
     let url = `https://inventory.roblox.com/v2/users/${userId}/inventory?limit=${limit}&sortOrder=${sortOrder}`
 
-    // Add assetTypes as query parameters (can be multiple)
-    // Only add if we have asset types (empty array means fetch all)
     if (assetTypes.length > 0) {
       assetTypes.forEach((assetType) => {
         url += `&assetTypes=${encodeURIComponent(assetType)}`
@@ -58,9 +56,7 @@ export class RobloxInventoryService {
           if (errorBody.errors?.[0]?.message === 'Invalid asset type.') {
             console.error(`[InventoryV2] Invalid asset types provided: ${assetTypes.join(', ')}`)
           }
-        } catch (e) {
-          // Ignore parse errors
-        }
+        } catch (e) {}
       }
       throw error
     }

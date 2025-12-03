@@ -158,7 +158,6 @@ const DialogContent = React.forwardRef<HTMLDivElement, HTMLMotionProps<'div'>>(
           className
         )}
         onContextMenu={(e) => {
-          // Stop context menu from propagating to elements behind the dialog
           e.stopPropagation()
           onContextMenu?.(e)
         }}

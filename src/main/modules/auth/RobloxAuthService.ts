@@ -63,13 +63,11 @@ export class RobloxAuthService {
       }
       return Array.isArray(ticket) ? ticket[0] : ticket
     } catch (error) {
-      // If CSRF token is invalid, Roblox will return 403 with a new token in headers
       if (error instanceof RequestError && error.statusCode === 403 && error.headers) {
         const newToken = error.headers['x-csrf-token']
         if (newToken) {
           const updatedToken = Array.isArray(newToken) ? newToken[0] : (newToken as string)
 
-          // Retry with the new token
           const result = await attemptTicket(updatedToken)
           const ticket = result.headers['rbx-authentication-ticket']
           if (!ticket) {
@@ -112,7 +110,6 @@ export class RobloxAuthService {
       return await attemptStatus()
     } catch (error) {
       if (error instanceof RequestError) {
-        // Handle invalid/expired code - return special status so frontend can regenerate
         if (
           error.statusCode === 400 &&
           error.body &&
@@ -123,12 +120,10 @@ export class RobloxAuthService {
           return { status: 'CodeInvalid' }
         }
 
-        // Handle CSRF token requirement
         if (error.statusCode === 403 && error.headers) {
           const token = error.headers['x-csrf-token']
           if (token) {
             const csrfToken = Array.isArray(token) ? token[0] : (token as string)
-            // Retry with CSRF token
             return await attemptStatus(csrfToken)
           }
         }
@@ -151,8 +146,6 @@ export class RobloxAuthService {
         headers['x-csrf-token'] = csrfToken
       }
 
-      // We expect this to fail with 403 normally to get CSRF, or succeed with cookies
-      // safeRequest is used because we need to parse headers manually for cookies
       return safeRequest<any>({
         method: 'POST',
         url,
@@ -171,16 +164,13 @@ export class RobloxAuthService {
         if (token) {
           const csrfToken = Array.isArray(token) ? token[0] : (token as string)
 
-          // Retry with CSRF token
           const result: any = await attemptLogin(csrfToken)
 
-          // Extract cookie from headers
           const setCookie = result.headers['set-cookie']
           if (setCookie) {
             const cookies = Array.isArray(setCookie) ? setCookie : [setCookie]
             const securityCookie = cookies.find((c: string) => c.includes('.ROBLOSECURITY'))
             if (securityCookie) {
-              // Extract the value
               const match = securityCookie.match(/\.ROBLOSECURITY=([^;]+)/)
               if (match) {
                 return match[1]
