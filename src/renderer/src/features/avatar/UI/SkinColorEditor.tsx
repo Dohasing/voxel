@@ -4,6 +4,7 @@ import { ColorPicker } from '@renderer/components/UI/inputs/ColorPicker'
 import { Button } from '@renderer/components/UI/buttons/Button'
 import { Account } from '@renderer/types'
 import { useNotification } from '@renderer/features/system/stores/useSnackbarStore'
+import { useSetBodyColors } from '../api/useAvatar'
 
 interface SkinColorEditorProps {
   account: Account
@@ -28,15 +29,13 @@ const SkinColorEditor: React.FC<SkinColorEditorProps> = ({
 }) => {
   const [selectedPart, setSelectedPart] = useState('all')
   const [color, setColor] = useState<string>('#FFFFFF')
-  const [isSaving, setIsSaving] = useState(false)
   const { showNotification } = useNotification()
+  const setBodyColorsMutation = useSetBodyColors(account)
 
-  // Initialize color from current body colors when part changes or data loads
   useEffect(() => {
     if (!currentBodyColors) return
 
     if (selectedPart === 'all') {
-      // Default to head color for 'All'
       if (currentBodyColors.headColor3) {
         setColor(currentBodyColors.headColor3)
       }
@@ -55,43 +54,36 @@ const SkinColorEditor: React.FC<SkinColorEditorProps> = ({
 
   const handleSave = async () => {
     if (!account.cookie) return
-    setIsSaving(true)
 
-    try {
-      const bodyColors: Record<string, string> = {}
+    const bodyColors: Record<string, string> = {}
 
-      if (selectedPart === 'all') {
+    if (selectedPart === 'all') {
+      BODY_PARTS.forEach((part) => {
+        if (part.id !== 'all') {
+          bodyColors[part.id] = color
+        }
+      })
+    } else {
+      if (currentBodyColors) {
         BODY_PARTS.forEach((part) => {
           if (part.id !== 'all') {
-            bodyColors[part.id] = color
+            bodyColors[part.id] = currentBodyColors[part.id] || '#FFFFFF'
           }
         })
-      } else {
-        // Send all current colors with the updated one changed to preserve others
-        if (currentBodyColors) {
-          BODY_PARTS.forEach((part) => {
-            if (part.id !== 'all') {
-              // Use existing color or fallback to current selection if missing
-              bodyColors[part.id] = currentBodyColors[part.id] || '#FFFFFF'
-            }
-          })
-        }
-        bodyColors[selectedPart] = color
       }
+      bodyColors[selectedPart] = color
+    }
 
-      const result = await (window as any).api.setBodyColors(account.cookie, bodyColors)
-      if (result.success) {
+    setBodyColorsMutation.mutate(bodyColors, {
+      onSuccess: () => {
         showNotification('Skin color updated successfully', 'success')
         onUpdate()
-      } else {
-        showNotification('Failed to update skin color', 'error')
+      },
+      onError: (error) => {
+        console.error('Failed to update skin color:', error)
+        showNotification('Error updating skin color', 'error')
       }
-    } catch (error) {
-      console.error('Failed to update skin color:', error)
-      showNotification('Error updating skin color', 'error')
-    } finally {
-      setIsSaving(false)
-    }
+    })
   }
 
   return (
@@ -116,8 +108,13 @@ const SkinColorEditor: React.FC<SkinColorEditorProps> = ({
       </div>
 
       <div className="flex justify-center pt-4 pb-8">
-        <Button onClick={handleSave} disabled={isSaving} className="w-full max-w-xs" size="lg">
-          {isSaving ? 'Updating...' : 'Update Skin Color'}
+        <Button
+          onClick={handleSave}
+          disabled={setBodyColorsMutation.isPending}
+          className="w-full max-w-xs"
+          size="lg"
+        >
+          {setBodyColorsMutation.isPending ? 'Updating...' : 'Update Skin Color'}
         </Button>
       </div>
     </div>

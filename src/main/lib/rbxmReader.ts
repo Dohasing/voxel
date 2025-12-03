@@ -7,10 +7,6 @@ import lz4 from 'lz4js'
 import * as fzstd from 'fzstd'
 import { Instance, Properties, Property } from './xmlReader'
 
-// ==========================================
-// 1. Utilities
-// ==========================================
-
 function formatNum(num: number) {
   if (Math.abs(num) < 0.0001) return '0'
   return Number(num.toPrecision(5)).toString()
@@ -40,10 +36,6 @@ function bitsToByteArray(bits: Uint8Array) {
   }
   return outBytes
 }
-
-// ==========================================
-// 2. Types & Enums
-// ==========================================
 
 export enum DataType {
   String = 0x01,
@@ -79,7 +71,6 @@ export enum DataType {
   SecurityCapabilities = 0x21
 }
 
-// Basic Math Classes
 export class Vector3Value {
   constructor(
     public X: number,
@@ -182,10 +173,6 @@ export class EnumItemValue {
 
 export type RobloxValue = { type: DataType; value: any }
 
-// ==========================================
-// 3. Core Instance for Binary Reader
-// ==========================================
-
 export class CoreInstance {
   public Name: string = 'Instance'
   public Parent?: CoreInstance
@@ -237,10 +224,6 @@ export class RobloxBinaryFile {
     return new RobloxFileDOMReader().read(new Uint8Array(buffer))
   }
 }
-
-// ==========================================
-// 4. Binary Reader Logic
-// ==========================================
 
 class ByteReader {
   private idx = 0
@@ -298,7 +281,6 @@ class ByteReader {
     this.idx += n
   }
 
-  // Array Helpers
   static convertInterleaved<T>(bytes: Uint8Array, count: number, fn: (b: Uint8Array) => T): T[] {
     const stride = bytes.length / count
     const res = new Array<T>(count)
@@ -330,10 +312,6 @@ class ByteReader {
     })
   }
 }
-
-// ==========================================
-// 5. Parsers
-// ==========================================
 
 abstract class TypeParser {
   abstract read(
@@ -467,7 +445,6 @@ const Parsers: Partial<Record<DataType, TypeParser>> = {
   [DataType.Referent]: {
     read(r, count, out, extra) {
       const refs = r.getInterleavedInt32(count)
-      // Accumulate
       for (let i = 1; i < count; i++) refs[i] += refs[i - 1]
 
       for (let i = 0; i < count; i++) {
@@ -586,14 +563,10 @@ const Parsers: Partial<Record<DataType, TypeParser>> = {
   }
 }
 
-// ==========================================
-// 6. DOM Reader
-// ==========================================
-
 class RobloxFileDOMReader {
   private file = new RobloxBinaryFile()
-  private instMap = new Map<number, CoreInstance>() // Referent ID -> Instance
-  private instClassMap = new Map<number, number>() // Referent ID -> Class ID
+  private instMap = new Map<number, CoreInstance>()
+  private instClassMap = new Map<number, number>()
   private classInfos = new Map<
     number,
     { name: string; isService: boolean; instances: CoreInstance[]; refs: number[] }
@@ -609,13 +582,13 @@ class RobloxFileDOMReader {
       return null
     }
 
-    r.skip(2 + 4 + 4 + 8) // Version, Classes, Instances, Reserved
+    r.skip(2 + 4 + 4 + 8)
 
     while (true) {
       const type = r.getBytesAsString(4)
       const compLen = r.getUint32()
       const rawLen = r.getUint32()
-      r.skip(4) // Reserved
+      r.skip(4)
 
       if (type === 'END\0') break
 
@@ -628,12 +601,9 @@ class RobloxFileDOMReader {
           compressed[2] === 0x2f &&
           compressed[3] === 0xfd
         ) {
-          // Zstandard compression
           chunkData = Buffer.allocUnsafe(rawLen)
           fzstd.decompress(compressed, chunkData)
         } else {
-          // LZ4 block compression (raw, no frame header)
-          // decompressBlock writes to output buffer and returns bytes written
           chunkData = new Uint8Array(rawLen)
           lz4.decompressBlock(compressed, chunkData, 0, compLen, 0)
         }
@@ -644,7 +614,6 @@ class RobloxFileDOMReader {
       this.parseChunk(type, new ByteReader(chunkData))
     }
 
-    // Parent linking done in PRNT chunk, roots are those without parents
     for (const inst of this.instMap.values()) {
       if (!inst.Parent) this.file.Roots.push(inst)
     }
@@ -660,7 +629,6 @@ class RobloxFileDOMReader {
       const count = r.getUint32()
       const refs = r.getInterleavedInt32(count)
 
-      // Fix accumulated referents
       for (let i = 1; i < count; i++) refs[i] += refs[i - 1]
 
       const instances: CoreInstance[] = []
@@ -694,12 +662,11 @@ class RobloxFileDOMReader {
         }
       }
     } else if (type === 'PRNT') {
-      r.getUint8() // Format
+      r.getUint8()
       const count = r.getUint32()
       const childRefs = r.getInterleavedInt32(count)
       const parentRefs = r.getInterleavedInt32(count)
 
-      // Accumulate
       for (let i = 1; i < count; i++) {
         childRefs[i] += childRefs[i - 1]
         parentRefs[i] += parentRefs[i - 1]
@@ -718,21 +685,16 @@ class RobloxFileDOMReader {
         this.file.Metadata.set(r.getString(), r.getString())
       }
     } else if (type === 'SSTR') {
-      // Shared strings chunk
-      r.getUint32() // Version
+      r.getUint32()
       const count = r.getUint32()
       for (let i = 0; i < count; i++) {
-        const hash = r.getBytesAsString(16) // MD5 hash
+        const hash = r.getBytesAsString(16)
         const value = r.getString()
         this.file.SharedStrings.push(new SharedStringValue(value, hash))
       }
     }
   }
 }
-
-// ==========================================
-// 7. Conversion to xmlReader-compatible format
-// ==========================================
 
 /**
  * Converts a CoreInstance from binary format to the Instance class used by xmlReader.ts
@@ -742,14 +704,12 @@ function convertToXmlInstance(coreInst: CoreInstance): Instance {
   const inst = new Instance(coreInst.ClassName)
   inst.referent = coreInst.referent
 
-  // Convert properties
   const props: Properties = {}
   for (const [name, robloxVal] of coreInst.Properties) {
     props[name] = convertRobloxValueToProperty(name, robloxVal)
   }
   inst.properties = props
 
-  // Convert children
   for (const child of coreInst.Children) {
     convertToXmlInstance(child).setParent(inst)
   }
@@ -798,9 +758,7 @@ function convertRobloxValueToProperty(_name: string, rVal: RobloxValue): Propert
   const typeName = typeMap[rVal.type] || 'string'
   let value = rVal.value
 
-  // Convert complex types to string representation
   if (value && typeof value === 'object' && typeof value.toString === 'function') {
-    // Keep certain objects as-is for structural display
     if (
       value instanceof Vector3Value ||
       value instanceof Vector2Value ||
@@ -811,7 +769,6 @@ function convertRobloxValueToProperty(_name: string, rVal: RobloxValue): Propert
     ) {
       value = value.toString()
     } else if (value instanceof CoreInstance) {
-      // Reference to another instance
       value = value.referent
     }
   }
@@ -840,11 +797,9 @@ export function parseBinaryRobloxFile(buffer: Buffer): Instance {
     throw new Error('Failed to parse binary Roblox file')
   }
 
-  // Create a DataModel root
   const dataModel = new Instance('DataModel')
   dataModel.properties = {}
 
-  // Convert all roots
   for (const root of file.Roots) {
     convertToXmlInstance(root).setParent(dataModel)
   }

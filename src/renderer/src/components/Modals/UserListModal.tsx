@@ -42,21 +42,18 @@ const UserListModal: React.FC<UserListModalProps> = ({
 
   useEffect(() => {
     if (isOpen) {
-      // Reset state immediately
       setUsers([])
       setCursor(null)
       setHasMore(true)
       setError(null)
       setSearchQuery('')
 
-      // Defer API request until animation completes to prevent frame drops
       fetchTimeoutRef.current = setTimeout(() => {
         fetchUsers(null)
       }, ANIMATION_DELAY_MS)
     }
 
     return () => {
-      // Cleanup timeout if modal closes during animation
       if (fetchTimeoutRef.current) {
         clearTimeout(fetchTimeoutRef.current)
         fetchTimeoutRef.current = null
@@ -75,7 +72,6 @@ const UserListModal: React.FC<UserListModalProps> = ({
         let nextCursor: string | null = null
 
         if (type === 'friends') {
-          // Use paginated friends endpoint to avoid loading all friends at once
           const res = await window.api.getFriendsPaged(
             requestCookie,
             numericUserId,
@@ -113,7 +109,6 @@ const UserListModal: React.FC<UserListModalProps> = ({
           })
         }
 
-        // Wrap large list updates in startTransition to prevent animation jank
         startTransition(() => {
           setUsers((prev) => (currentCursor ? [...prev, ...newUsers] : newUsers))
         })

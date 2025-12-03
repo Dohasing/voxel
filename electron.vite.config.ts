@@ -42,6 +42,7 @@ export default defineConfig({
     define: {
       __APP_VERSION__: JSON.stringify(pkg.version)
     },
+    assetsInclude: ['**/*.dds'], // Include DDS files as assets
     plugins: [react(), tailwindcss()]
   }
 })
