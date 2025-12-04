@@ -281,6 +281,8 @@ interface SidebarProps {
   showProfileCard: boolean
 }
 
+const isMac = window.platform?.isMac ?? false
+
 const Sidebar = ({
   sidebarWidth,
   isResizing,
@@ -307,11 +309,15 @@ const Sidebar = ({
         } ${!isResizing ? 'transition-[width] duration-300 ease-in-out' : ''}`}
         layout={shouldAnimateLayout}
       >
-        {/* Sidebar Header */}
+        {/* Sidebar Header - extra top padding on macOS for traffic lights */}
         <div
-          className={`h-[72px] flex items-center shrink-0 bg-[#111111] transition-all duration-300 ${
+          className={`flex items-center shrink-0 bg-[#111111] transition-all duration-300 ${
             isSidebarCollapsed ? 'justify-center px-0' : 'justify-between pl-6 pr-4'
           }`}
+          style={{
+            height: isMac ? '72px' : '72px',
+            paddingTop: isMac ? '28px' : '0px'
+          }}
         >
           <div
             className={`font-bold text-xl tracking-tight text-white transition-all duration-200 flex items-center gap-2 ${
@@ -320,14 +326,16 @@ const Sidebar = ({
           >
             Voxel
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={toggleSidebarCollapsed}
-            className="text-neutral-500 hover:text-white hover:bg-neutral-800"
-          >
-            {isSidebarCollapsed ? <Menu size={20} /> : <ChevronLeft size={20} />}
-          </Button>
+          {!isMac && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleSidebarCollapsed}
+              className="text-neutral-500 hover:text-white hover:bg-neutral-800"
+            >
+              {isSidebarCollapsed ? <Menu size={20} /> : <ChevronLeft size={20} />}
+            </Button>
+          )}
         </div>
 
         {/* Nav Items */}

@@ -23,6 +23,14 @@ import {
   updaterApi
 } from './api'
 
+// Platform info
+const platform = {
+  isMac: process.platform === 'darwin',
+  isWindows: process.platform === 'win32',
+  isLinux: process.platform === 'linux',
+  platform: process.platform
+}
+
 // Merge all domain APIs into a single api object
 const api = {
   ...accountApi,
@@ -52,6 +60,7 @@ if (process.contextIsolated) {
   try {
     contextBridge.exposeInMainWorld('electron', electronAPI)
     contextBridge.exposeInMainWorld('api', api)
+    contextBridge.exposeInMainWorld('platform', platform)
   } catch (error) {
     console.error(error)
   }
@@ -60,4 +69,6 @@ if (process.contextIsolated) {
   window.electron = electronAPI
   // @ts-ignore (define in dts)
   window.api = api
+  // @ts-ignore (define in dts)
+  window.platform = platform
 }

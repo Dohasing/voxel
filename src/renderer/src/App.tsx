@@ -80,6 +80,8 @@ interface JoinConfig {
   target: string
 }
 
+const isMac = window.platform?.isMac ?? false
+
 const App: React.FC = () => {
   const { showNotification } = useNotification()
   const queryClient = useQueryClient()
@@ -562,7 +564,12 @@ const App: React.FC = () => {
         {/* Title Bar spacer */}
         <div
           className="h-[45px] bg-neutral-950 flex-shrink-0 w-full border-b border-neutral-800 flex items-center justify-end"
-          style={{ WebkitAppRegion: 'drag', paddingRight: '128px' } as React.CSSProperties}
+          style={
+            {
+              WebkitAppRegion: 'drag',
+              paddingRight: isMac ? '16px' : '138px'
+            } as React.CSSProperties
+          }
         >
           {/* Search and Notification Bell */}
           <div
@@ -580,7 +587,7 @@ const App: React.FC = () => {
               <Search className="h-4 w-4" />
             </button>
             <NotificationTray />
-            <div className="w-px h-5 bg-neutral-700 mx-2" />
+            {!isMac && <div className="w-px h-5 bg-neutral-700 mx-2" />}
           </div>
         </div>
         {/* Tab panels - conditional rendering for performance */}

@@ -34,12 +34,17 @@ function createWindow(): BrowserWindow {
     icon,
     backgroundColor: '#111111',
     titleBarStyle: 'hidden',
-    titleBarOverlay: {
-      color: '#00000000',
-      symbolColor: '#ffffff',
-      height: 45
-    },
-    ...(process.platform === 'linux' ? {} : {}),
+    ...(process.platform === 'darwin'
+      ? {
+          trafficLightPosition: { x: 16, y: 16 }
+        }
+      : {
+          titleBarOverlay: {
+            color: '#00000000',
+            symbolColor: '#ffffff',
+            height: 45
+          }
+        }),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false
