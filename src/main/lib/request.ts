@@ -40,6 +40,11 @@ export const safeRequest = <T>(options: RequestOptions): Promise<T> => {
         url: options.url
       })
 
+      const timeout = setTimeout(() => {
+        request.abort()
+        reject(new RequestError('Request timed out', 408))
+      }, 30000)
+
       if (options.cookie) {
         request.setHeader('Cookie', `.ROBLOSECURITY=${options.cookie}`)
         try {
@@ -68,6 +73,10 @@ export const safeRequest = <T>(options: RequestOptions): Promise<T> => {
         request.write(JSON.stringify(options.body))
       }
 
+      request.on('redirect', () => {
+        request.followRedirect()
+      })
+
       request.on('response', (response) => {
         let data = ''
         response.on('data', (chunk) => {
@@ -75,6 +84,7 @@ export const safeRequest = <T>(options: RequestOptions): Promise<T> => {
         })
 
         response.on('end', () => {
+          clearTimeout(timeout)
           if (response.statusCode >= 200 && response.statusCode < 300) {
             try {
               const result = data ? JSON.parse(data) : {}
@@ -106,6 +116,7 @@ export const safeRequest = <T>(options: RequestOptions): Promise<T> => {
       })
 
       request.on('error', (error) => {
+        clearTimeout(timeout)
         reject(error)
       })
 

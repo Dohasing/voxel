@@ -99,12 +99,14 @@ const AddAccountStep: React.FC<AddAccountStepProps> = ({ onAccountAdded, onSkip 
 
   const handleQuickLoginComplete = async (code: string, privateKey: string) => {
     setIsLoading(true)
+    setError(null)
     try {
       const cookieValue = await window.api.completeQuickLogin(code, privateKey)
       await addAccountFromCookie(cookieValue)
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to complete quick login:', err)
-      setError('Failed to complete login')
+      setError(err?.message || 'Failed to complete login')
+    } finally {
       setIsLoading(false)
     }
   }
@@ -220,7 +222,10 @@ const AddAccountStep: React.FC<AddAccountStepProps> = ({ onAccountAdded, onSkip 
           { id: 'browser', label: 'Login', icon: LogIn }
         ]}
         activeTab={method}
-        onTabChange={(tabId) => setMethod(tabId as 'quick' | 'cookie' | 'browser')}
+        onTabChange={(tabId) => {
+          setError(null)
+          setMethod(tabId as 'quick' | 'cookie' | 'browser')
+        }}
         layoutId="onboardingAddAccountTab"
         tabClassName="pressable"
         className="-mx-6"

@@ -154,7 +154,7 @@ const App: React.FC = () => {
 
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement
-      if (!target.closest('[data-menu-id]') && !target.closest('.fixed.z-\\[100\\]')) {
+      if (!target.closest('[data-menu-id]') && !target.closest('.fixed.z-\\[1100\\]')) {
         setActiveMenu(null)
       }
     }
@@ -738,6 +738,7 @@ const App: React.FC = () => {
         onEditNote={handleEditNote}
         onReauth={handleReauth}
         onRemove={handleIndividualRemove}
+        onClose={() => setActiveMenu(null)}
       />
 
       {/* Snackbar Notifications (replaces NotificationProvider) */}

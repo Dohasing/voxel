@@ -146,9 +146,10 @@ const AddAccountModal: React.FC<AddAccountModalProps> = ({ isOpen, onClose, onAd
       const cookie = await window.api.completeQuickLogin(code, privateKey)
       await onAdd(cookie)
       onClose()
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to complete quick login:', error)
-      setQuickLoginStatus('Failed to exchange token')
+      setQuickLoginStatus(error?.message || 'Failed to exchange token')
+    } finally {
       setIsLoading(false)
     }
   }
