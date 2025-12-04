@@ -327,7 +327,7 @@ export class RobloxUserService {
         displayName: user.displayName
       }
     }
-    throw new Error(`User with username "${username}" not found`)
+    return null
   }
 
   static async getUserGroups(userId: number) {

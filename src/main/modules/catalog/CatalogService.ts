@@ -7,11 +7,11 @@ import { parseStringPromise } from 'xml2js'
 
 // Catalog Navigation Menu Item Schema
 const catalogSubcategorySchema = z.object({
-  subcategory: z.string(),
+  subcategory: z.string().nullable(),
   taxonomy: z.string(),
   assetTypeIds: z.array(z.number()),
   bundleTypeIds: z.array(z.number()),
-  subcategoryId: z.number(),
+  subcategoryId: z.number().nullable(),
   name: z.string(),
   shortName: z.string().nullable().optional()
 })

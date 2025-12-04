@@ -37,6 +37,7 @@ import { CollectionsSection } from './components/CollectionsSection'
 import { BadgesSection } from './components/BadgesSection'
 import { ExpandedAvatarModal } from './components/ExpandedAvatarModal'
 import { TruncatedTextWithTooltip } from './components/TruncatedTextWithTooltip'
+import { QuickActionsBar } from './components/QuickActionsBar'
 
 export interface ProfileViewProps {
   userId: string | number
@@ -201,43 +202,12 @@ const UserProfileView: React.FC<ProfileViewProps> = ({
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             <div className="lg:col-span-4 space-y-6">
-              <div className="bg-neutral-900/50 border border-neutral-800 rounded-xl p-5">
-                <h3 className="text-lg font-bold text-white mb-3">Quick Actions</h3>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    onClick={() => setIsWearingOpen(true)}
-                    className="pressable flex items-center gap-2.5 px-3 py-2.5 bg-neutral-800/60 hover:bg-neutral-800 border border-neutral-700/50 hover:border-neutral-600 rounded-lg text-sm text-neutral-300 hover:text-white transition-all group"
-                    aria-label="View currently wearing items"
-                  >
-                    <Shirt size={16} className="text-neutral-400 group-hover:text-neutral-300" />
-                    <span className="font-medium">Wearing</span>
-                  </button>
-                  <button
-                    onClick={() => setIsOutfitsOpen(true)}
-                    className="pressable flex items-center gap-2.5 px-3 py-2.5 bg-neutral-800/60 hover:bg-neutral-800 border border-neutral-700/50 hover:border-neutral-600 rounded-lg text-sm text-neutral-300 hover:text-white transition-all group"
-                    aria-label="View saved outfits"
-                  >
-                    <Package size={16} className="text-neutral-400 group-hover:text-neutral-300" />
-                    <span className="font-medium">Outfits</span>
-                  </button>
-                  <button
-                    onClick={() => setIsInventoryOpen(true)}
-                    className="pressable flex items-center gap-2.5 px-3 py-2.5 bg-neutral-800/60 hover:bg-neutral-800 border border-neutral-700/50 hover:border-neutral-600 rounded-lg text-sm text-neutral-300 hover:text-white transition-all group"
-                    aria-label="View inventory"
-                  >
-                    <Box size={16} className="text-neutral-400 group-hover:text-neutral-300" />
-                    <span className="font-medium">Inventory</span>
-                  </button>
-                  <button
-                    onClick={handleCopyUserId}
-                    className="pressable flex items-center gap-2.5 px-3 py-2.5 bg-neutral-800/60 hover:bg-neutral-800 border border-neutral-700/50 hover:border-neutral-600 rounded-lg text-sm text-neutral-300 hover:text-white transition-all group"
-                    aria-label="Copy user ID to clipboard"
-                  >
-                    <Copy size={16} className="text-neutral-400 group-hover:text-neutral-300" />
-                    <span className="font-medium">Copy ID</span>
-                  </button>
-                </div>
-              </div>
+              <QuickActionsBar
+                onWearingClick={() => setIsWearingOpen(true)}
+                onOutfitsClick={() => setIsOutfitsOpen(true)}
+                onInventoryClick={() => setIsInventoryOpen(true)}
+                onCopyIdClick={handleCopyUserId}
+              />
 
               <ProfileStats
                 profile={profile}

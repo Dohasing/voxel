@@ -24,7 +24,7 @@ export const accountApi = {
 
 export const usersApi = {
   getUserByUsername: (username: string) =>
-    invoke('get-user-by-username', S.userSummarySchema, username),
+    invoke('get-user-by-username', S.userSummarySchema.nullable(), username),
   getExtendedUserDetails: (cookie: string, userId: number) =>
     invoke('get-user-details-extended', S.extendedUserDetailsSchema, cookie, userId),
   getUserGroups: (userId: number) => invoke('get-user-groups', z.array(z.any()), userId),

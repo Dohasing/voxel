@@ -9,6 +9,7 @@ const SheetContext = React.createContext<{
   isOpen: boolean
   onClose: () => void
   dragControls: ReturnType<typeof useDragControls> | null
+  shouldRenderContent: boolean
 } | null>(null)
 
 const useSheet = () => {
@@ -29,12 +30,14 @@ interface SheetProps {
 const SHEET_MARGIN_TOP = 48 // px from top when fully open
 const DRAG_CLOSE_THRESHOLD = 150 // px drag distance to trigger close
 const DRAG_VELOCITY_THRESHOLD = 500 // velocity to trigger close
+const CONTENT_RENDER_DELAY = 50 // ms delay before rendering heavy content
 
 // Track open sheets to handle nested sheets properly
 let openSheetsCount = 0
 
 const Sheet: React.FC<SheetProps> = ({ isOpen, onClose, children, className }) => {
   const [isVisible, setIsVisible] = React.useState(false)
+  const [shouldRenderContent, setShouldRenderContent] = React.useState(false)
   const dragControls = useDragControls()
   const constraintsRef = React.useRef<HTMLDivElement>(null)
   const sheetRef = React.useRef<HTMLDivElement>(null)
@@ -46,13 +49,21 @@ const Sheet: React.FC<SheetProps> = ({ isOpen, onClose, children, className }) =
     prevIsOpenRef.current = isOpen
 
     if (isOpen && !wasOpen) {
-      // Opening: immediately show
+      // Opening: immediately show container, defer content
       openSheetsCount++
       setIsVisible(true)
       document.body.style.overflow = 'hidden'
       document.body.setAttribute('data-sheet-open', 'true')
+
+      // Defer heavy content rendering to allow animation to start smoothly
+      const contentTimer = setTimeout(() => {
+        setShouldRenderContent(true)
+      }, CONTENT_RENDER_DELAY)
+
+      return () => clearTimeout(contentTimer)
     } else if (!isOpen && wasOpen) {
-      // Closing
+      // Closing: immediately hide content, delay container
+      setShouldRenderContent(false)
       openSheetsCount = Math.max(0, openSheetsCount - 1)
       document.body.removeAttribute('data-sheet-open')
 
@@ -72,6 +83,7 @@ const Sheet: React.FC<SheetProps> = ({ isOpen, onClose, children, className }) =
   React.useEffect(() => {
     return () => {
       openSheetsCount = Math.max(0, openSheetsCount - 1)
+      setShouldRenderContent(false)
 
       if (openSheetsCount === 0) {
         document.body.style.overflow = ''
@@ -119,7 +131,7 @@ const Sheet: React.FC<SheetProps> = ({ isOpen, onClose, children, className }) =
 
   // Use portal to render outside of #app-container so it's not affected by the zoom
   return createPortal(
-    <SheetContext.Provider value={{ isOpen, onClose, dragControls }}>
+    <SheetContext.Provider value={{ isOpen, onClose, dragControls, shouldRenderContent }}>
       <div
         ref={constraintsRef}
         className="fixed inset-0 z-[60] overflow-hidden"
@@ -286,13 +298,23 @@ const SheetClose = React.forwardRef<
 SheetClose.displayName = 'SheetClose'
 
 const SheetBody = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => (
-    <div
-      ref={ref}
-      className={cn('flex-1 overflow-y-auto overflow-x-hidden', className)}
-      {...props}
-    />
-  )
+  ({ className, children, ...props }, ref) => {
+    const { shouldRenderContent } = useSheet()
+
+    return (
+      <div
+        ref={ref}
+        className={cn('flex-1 overflow-y-auto overflow-x-hidden', className)}
+        {...props}
+      >
+        {shouldRenderContent ? children : (
+          <div className="flex items-center justify-center h-full">
+            <div className="w-6 h-6 border-2 border-neutral-600 border-t-transparent rounded-full animate-spin" />
+          </div>
+        )}
+      </div>
+    )
+  }
 )
 SheetBody.displayName = 'SheetBody'
 

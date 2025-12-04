@@ -27,7 +27,7 @@ export interface CatalogResultItem {
 }
 
 // Universal search result types
-export type SearchResultType = 'limited' | 'catalog' | 'user' | 'game' | 'command'
+export type SearchResultType = 'limited' | 'catalog' | 'user' | 'game' | 'command' | 'player'
 
 export interface LimitedSearchResult {
   type: 'limited'
@@ -63,7 +63,21 @@ export interface CatalogSearchResult {
   isForSale: boolean
 }
 
-export type UniversalSearchResult = LimitedSearchResult | CommandSearchResult | CatalogSearchResult
+export interface PlayerSearchResult {
+  type: 'player'
+  id: number
+  name: string
+  displayName: string
+  hasVerifiedBadge?: boolean
+  isFriend?: boolean
+  avatarUrl?: string
+}
+
+export type UniversalSearchResult =
+  | LimitedSearchResult
+  | CommandSearchResult
+  | CatalogSearchResult
+  | PlayerSearchResult
 
 export interface Command {
   id: string

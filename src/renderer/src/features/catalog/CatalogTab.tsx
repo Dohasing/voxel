@@ -57,7 +57,6 @@ import CatalogItemContextMenu from './CatalogItemContextMenu'
 import { CatalogFilterSidebar } from './CatalogFilterSidebar'
 import { CatalogActiveFilters } from './CatalogActiveFilters'
 
-// Sort options
 const SORT_OPTIONS: DropdownOption[] = [
   { value: '0', label: 'Relevance' },
   { value: '1', label: 'Most Favorited' },
@@ -530,7 +529,7 @@ const CatalogTab = ({ onItemSelect, onCreatorSelect, cookie }: CatalogTabProps) 
           />
 
           {/* Content */}
-          <div className="flex-1 overflow-y-auto p-6 scrollbar-thin bg-neutral-950">
+          <div className="flex-1 overflow-y-auto pt-8 pb-6 px-6 scrollbar-thin bg-neutral-950">
             <AnimatePresence mode="wait">
               {isLoading && items.length === 0 ? (
                 <motion.div

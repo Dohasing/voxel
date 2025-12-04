@@ -57,7 +57,7 @@ const formatValue = (value: any, type: string, name: string): React.ReactNode =>
     return (
       <LuaHighlighter
         code={value}
-        className="w-full max-h-[400px] overflow-y-auto rounded border border-neutral-800 bg-neutral-950"
+        className="w-full max-h-[400px] overflow-y-auto overflow-x-auto rounded border border-neutral-800 bg-neutral-950"
       />
     )
   }
@@ -349,8 +349,10 @@ export const AssetHierarchyModal = ({
                               <td className="px-4 py-2 text-xs font-medium text-neutral-400 group-hover:text-neutral-200 align-top pt-3">
                                 {name}
                               </td>
-                              <td className="px-4 py-2 text-xs align-top pt-3 pb-3">
-                                {formatValue(prop.value, prop.type, name)}
+                              <td className="px-4 py-2 text-xs align-top pt-3 pb-3 min-w-0">
+                                <div className="min-w-0">
+                                  {formatValue(prop.value, prop.type, name)}
+                                </div>
                               </td>
                             </tr>
                           ))}

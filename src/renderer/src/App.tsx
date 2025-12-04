@@ -1,6 +1,7 @@
 /// <reference path="./window.d.ts" />
 import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react'
 import { AnimatePresence } from 'framer-motion'
+import { Search } from 'lucide-react'
 import { Account, AccountStatus, JoinMethod } from './types'
 import { mapPresenceToStatus, isActiveStatus } from './utils/statusUtils'
 import JoinModal from './components/Modals/JoinModal'
@@ -559,11 +560,21 @@ const App: React.FC = () => {
           className="h-[45px] bg-neutral-950 flex-shrink-0 w-full border-b border-neutral-800 flex items-center justify-end"
           style={{ WebkitAppRegion: 'drag', paddingRight: '128px' } as React.CSSProperties}
         >
-          {/* Notification Bell */}
+          {/* Search and Notification Bell */}
           <div
-            className="flex items-center mr-2"
+            className="flex items-center mr-2 gap-2"
             style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
           >
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                openCommandPalette()
+              }}
+              className="relative p-2 rounded-md transition-all hover:bg-neutral-800/50 text-neutral-400 hover:text-neutral-200"
+              title="Search (Ctrl+K)"
+            >
+              <Search className="h-4 w-4" />
+            </button>
             <NotificationTray />
             <div className="w-px h-5 bg-neutral-700 mx-2" />
           </div>

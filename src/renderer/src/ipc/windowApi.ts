@@ -161,7 +161,7 @@ export interface SocialApi {
   declineFriendRequest: (cookie: string, requesterUserId: number) => Promise<SuccessResponse>
   unfriend: (cookie: string, targetUserId: number) => Promise<SuccessResponse>
   blockUser: (cookie: string, targetUserId: number) => Promise<SuccessResponse>
-  getUserByUsername: (username: string) => Promise<UserSummary>
+  getUserByUsername: (username: string) => Promise<UserSummary | null>
   getUserGroups: (userId: number) => Promise<UserGroupRole[]>
 }
 
