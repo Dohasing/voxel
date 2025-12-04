@@ -204,16 +204,6 @@ class CatalogDatabaseService {
   }
 
   /**
-   * Ensure database is initialized (sync version - throws if not downloaded)
-   */
-  private ensureInitialized(): Database.Database {
-    if (!this.db) {
-      this.initialize()
-    }
-    return this.db!
-  }
-
-  /**
    * Get all catalog items for search indexing
    */
   async getAllItems(): Promise<CatalogSearchResult[]> {

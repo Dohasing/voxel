@@ -307,7 +307,9 @@ const SheetBody = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivE
         className={cn('flex-1 overflow-y-auto overflow-x-hidden', className)}
         {...props}
       >
-        {shouldRenderContent ? children : (
+        {shouldRenderContent ? (
+          children
+        ) : (
           <div className="flex items-center justify-center h-full">
             <div className="w-6 h-6 border-2 border-neutral-600 border-t-transparent rounded-full animate-spin" />
           </div>
