@@ -1,11 +1,7 @@
 import React from 'react'
 import { motion } from 'framer-motion'
 import { Shirt, Package, Box, Copy, Check } from 'lucide-react'
-import {
-  Tooltip,
-  TooltipTrigger,
-  TooltipContent
-} from '@renderer/components/UI/display/Tooltip'
+import { Tooltip, TooltipTrigger, TooltipContent } from '@renderer/components/UI/display/Tooltip'
 
 interface QuickActionsBarProps {
   onWearingClick: () => void

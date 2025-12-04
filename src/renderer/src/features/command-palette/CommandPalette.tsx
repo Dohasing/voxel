@@ -106,12 +106,35 @@ const iconMap: Record<string, React.ReactNode> = {
   cookie: <Cookie size={16} strokeWidth={1.75} />
 }
 
-const resultTypeBadges: Record<string, { label: string; className: string; icon: React.ReactNode }> = {
-  player: { label: 'Player', className: 'bg-blue-500/15 text-blue-400 border-blue-500/20', icon: <UserCircle2 size={10} /> },
-  friend: { label: 'Friend', className: 'bg-green-500/15 text-green-400 border-green-500/20', icon: <Users size={10} /> },
-  limited: { label: 'Limited', className: 'bg-amber-500/15 text-amber-400 border-amber-500/20', icon: <Gem size={10} /> },
-  catalog: { label: 'Catalog', className: 'bg-purple-500/15 text-purple-400 border-purple-500/20', icon: <Package size={10} /> },
-  command: { label: 'Command', className: 'bg-neutral-500/15 text-neutral-400 border-neutral-500/20', icon: <Terminal size={10} /> }
+const resultTypeBadges: Record<
+  string,
+  { label: string; className: string; icon: React.ReactNode }
+> = {
+  player: {
+    label: 'Player',
+    className: 'bg-blue-500/15 text-blue-400 border-blue-500/20',
+    icon: <UserCircle2 size={10} />
+  },
+  friend: {
+    label: 'Friend',
+    className: 'bg-green-500/15 text-green-400 border-green-500/20',
+    icon: <Users size={10} />
+  },
+  limited: {
+    label: 'Limited',
+    className: 'bg-amber-500/15 text-amber-400 border-amber-500/20',
+    icon: <Gem size={10} />
+  },
+  catalog: {
+    label: 'Catalog',
+    className: 'bg-purple-500/15 text-purple-400 border-purple-500/20',
+    icon: <Package size={10} />
+  },
+  command: {
+    label: 'Command',
+    className: 'bg-neutral-500/15 text-neutral-400 border-neutral-500/20',
+    icon: <Terminal size={10} />
+  }
 }
 
 const categoryLabels: Record<string, string> = {
@@ -200,19 +223,21 @@ const UniversalLimitedRow = memo(
           </div>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
-          <span className={cn(
-            'text-[10px] font-medium px-1.5 py-0.5 rounded-md border flex items-center gap-1',
-            badge.className
-          )}>
+          <span
+            className={cn(
+              'text-[10px] font-medium px-1.5 py-0.5 rounded-md border flex items-center gap-1',
+              badge.className
+            )}
+          >
             {badge.icon}
             {badge.label}
           </span>
-          <ChevronRight 
-            size={14} 
+          <ChevronRight
+            size={14}
             className={cn(
               'text-neutral-600 transition-all duration-150',
               isSelected ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-1'
-            )} 
+            )}
           />
         </div>
       </motion.button>
@@ -276,25 +301,29 @@ const UniversalCatalogRow = memo(
             {result.description && (
               <>
                 <span className="text-neutral-700">·</span>
-                <span className="truncate max-w-[180px] text-neutral-500">{result.description}</span>
+                <span className="truncate max-w-[180px] text-neutral-500">
+                  {result.description}
+                </span>
               </>
             )}
           </div>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
-          <span className={cn(
-            'text-[10px] font-medium px-1.5 py-0.5 rounded-md border flex items-center gap-1',
-            badge.className
-          )}>
+          <span
+            className={cn(
+              'text-[10px] font-medium px-1.5 py-0.5 rounded-md border flex items-center gap-1',
+              badge.className
+            )}
+          >
             {badge.icon}
             {badge.label}
           </span>
-          <ChevronRight 
-            size={14} 
+          <ChevronRight
+            size={14}
             className={cn(
               'text-neutral-600 transition-all duration-150',
               isSelected ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-1'
-            )} 
+            )}
           />
         </div>
       </motion.button>
@@ -355,10 +384,12 @@ const UniversalCommandRow = memo(
           )}
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
-          <span className={cn(
-            'text-[10px] font-medium px-1.5 py-0.5 rounded-md border flex items-center gap-1',
-            badge.className
-          )}>
+          <span
+            className={cn(
+              'text-[10px] font-medium px-1.5 py-0.5 rounded-md border flex items-center gap-1',
+              badge.className
+            )}
+          >
             {badge.icon}
             {badge.label}
           </span>
@@ -443,19 +474,21 @@ const UniversalPlayerRow = memo(
           <div className="text-[11px] text-neutral-500 truncate mt-0.5">@{result.name}</div>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
-          <span className={cn(
-            'text-[10px] font-medium px-1.5 py-0.5 rounded-md border flex items-center gap-1',
-            badge.className
-          )}>
+          <span
+            className={cn(
+              'text-[10px] font-medium px-1.5 py-0.5 rounded-md border flex items-center gap-1',
+              badge.className
+            )}
+          >
             {badge.icon}
             {badge.label}
           </span>
-          <ChevronRight 
-            size={14} 
+          <ChevronRight
+            size={14}
             className={cn(
               'text-neutral-600 transition-all duration-150',
               isSelected ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-1'
-            )} 
+            )}
           />
         </div>
       </motion.button>
@@ -1025,9 +1058,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                   />
                 </div>
               </div>
-              {isLoading && (
-                <Loader2 size={16} className="text-neutral-500 animate-spin" />
-              )}
+              {isLoading && <Loader2 size={16} className="text-neutral-500 animate-spin" />}
             </>
           ) : step === 'select' ? (
             <>
@@ -1076,7 +1107,12 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                     className="p-0.5 rounded-md hover:bg-white/[0.08] text-neutral-500 hover:text-neutral-300 transition-colors"
                   >
                     <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                      <path d="M3 3L9 9M9 3L3 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                      <path
+                        d="M3 3L9 9M9 3L3 9"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                      />
                     </svg>
                   </motion.button>
                 )}
@@ -1111,10 +1147,13 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                 </div>
                 <div className="flex flex-wrap justify-center gap-1.5">
                   {Object.entries(resultTypeBadges).map(([key, badge]) => (
-                    <span key={key} className={cn(
-                      'text-[10px] font-medium px-2 py-1 rounded-lg border flex items-center gap-1.5',
-                      badge.className
-                    )}>
+                    <span
+                      key={key}
+                      className={cn(
+                        'text-[10px] font-medium px-2 py-1 rounded-lg border flex items-center gap-1.5',
+                        badge.className
+                      )}
+                    >
                       {badge.icon}
                       {badge.label}
                     </span>
@@ -1123,7 +1162,9 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                 <div className="mt-5 pt-4 border-t border-white/[0.04]">
                   <div className="text-[11px] text-neutral-600 flex items-center justify-center gap-2">
                     <span>Type</span>
-                    <kbd className="px-1.5 py-0.5 bg-white/[0.04] border border-white/[0.06] rounded text-neutral-400 font-mono">&gt;</kbd>
+                    <kbd className="px-1.5 py-0.5 bg-white/[0.04] border border-white/[0.06] rounded text-neutral-400 font-mono">
+                      &gt;
+                    </kbd>
                     <span>for commands only</span>
                   </div>
                 </div>
@@ -1147,7 +1188,9 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                         <Terminal size={18} className="text-neutral-600" strokeWidth={1.5} />
                       </div>
                       <div className="text-neutral-400 text-[13px]">No commands found</div>
-                      <div className="text-neutral-600 text-[11px] mt-1">Try a different search term</div>
+                      <div className="text-neutral-600 text-[11px] mt-1">
+                        Try a different search term
+                      </div>
                     </div>
                   )
                 }
@@ -1168,7 +1211,9 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                         <motion.button
                           key={cmd.id}
                           initial={false}
-                          animate={{ backgroundColor: isSelected ? 'rgba(255,255,255,0.04)' : 'transparent' }}
+                          animate={{
+                            backgroundColor: isSelected ? 'rgba(255,255,255,0.04)' : 'transparent'
+                          }}
                           transition={{ duration: 0.1 }}
                           data-selected={isSelected}
                           onClick={() => selectCommand(cmd)}
@@ -1230,71 +1275,73 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                       <Search size={18} className="text-neutral-600" strokeWidth={1.5} />
                     </div>
                     <div className="text-neutral-400 text-[13px]">No results found</div>
-                    <div className="text-neutral-600 text-[11px] mt-1">Try a different search term</div>
+                    <div className="text-neutral-600 text-[11px] mt-1">
+                      Try a different search term
+                    </div>
                   </>
                 )}
               </div>
             ) : (
               <div className="py-1">
                 <Virtuoso
-                data={universalSearchResults}
-                overscan={20}
-                computeItemKey={(idx, item) =>
-                  item.type === 'command' ? `cmd-${item.command.id}` : `${item.type}-${item.id}`
-                }
-                style={{ height: listMaxHeight - 16 }}
-                itemContent={(idx, result) => {
-                  if (result.type === 'player') {
-                    return (
-                      <UniversalPlayerRow
-                        result={result}
-                        idx={idx}
-                        selectedIndex={selectedIndex}
-                        onSelect={handleSelectUniversalResult}
-                        onHover={setSelectedIndex}
-                      />
-                    )
+                  data={universalSearchResults}
+                  overscan={20}
+                  computeItemKey={(idx, item) =>
+                    item.type === 'command' ? `cmd-${item.command.id}` : `${item.type}-${item.id}`
                   }
+                  style={{ height: listMaxHeight - 16 }}
+                  itemContent={(idx, result) => {
+                    if (result.type === 'player') {
+                      return (
+                        <UniversalPlayerRow
+                          result={result}
+                          idx={idx}
+                          selectedIndex={selectedIndex}
+                          onSelect={handleSelectUniversalResult}
+                          onHover={setSelectedIndex}
+                        />
+                      )
+                    }
 
-                  if (result.type === 'limited') {
-                    return (
-                      <UniversalLimitedRow
-                        result={result}
-                        idx={idx}
-                        selectedIndex={selectedIndex}
-                        onSelect={handleSelectUniversalResult}
-                        onHover={setSelectedIndex}
-                      />
-                    )
-                  }
+                    if (result.type === 'limited') {
+                      return (
+                        <UniversalLimitedRow
+                          result={result}
+                          idx={idx}
+                          selectedIndex={selectedIndex}
+                          onSelect={handleSelectUniversalResult}
+                          onHover={setSelectedIndex}
+                        />
+                      )
+                    }
 
-                  if (result.type === 'catalog') {
-                    return (
-                      <UniversalCatalogRow
-                        result={result}
-                        idx={idx}
-                        selectedIndex={selectedIndex}
-                        onSelect={handleSelectUniversalResult}
-                        onHover={setSelectedIndex}
-                      />
-                    )
-                  }
+                    if (result.type === 'catalog') {
+                      return (
+                        <UniversalCatalogRow
+                          result={result}
+                          idx={idx}
+                          selectedIndex={selectedIndex}
+                          onSelect={handleSelectUniversalResult}
+                          onHover={setSelectedIndex}
+                        />
+                      )
+                    }
 
-                  if (result.type === 'command') {
-                    return (
-                      <UniversalCommandRow
-                        result={result}
-                        idx={idx}
-                        selectedIndex={selectedIndex}
-                        onSelect={handleSelectUniversalResult}
-                        onHover={setSelectedIndex}
-                      />
-                    )
-                  }
+                    if (result.type === 'command') {
+                      return (
+                        <UniversalCommandRow
+                          result={result}
+                          idx={idx}
+                          selectedIndex={selectedIndex}
+                          onSelect={handleSelectUniversalResult}
+                          onHover={setSelectedIndex}
+                        />
+                      )
+                    }
 
-                  return null
-                }}
-              />
+                    return null
+                  }}
+                />
               </div>
             )}
           </div>
@@ -1331,7 +1378,9 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                         <motion.button
                           key={cmd.id}
                           initial={false}
-                          animate={{ backgroundColor: isSelected ? 'rgba(255,255,255,0.04)' : 'transparent' }}
+                          animate={{
+                            backgroundColor: isSelected ? 'rgba(255,255,255,0.04)' : 'transparent'
+                          }}
                           transition={{ duration: 0.1 }}
                           data-selected={isSelected}
                           onClick={() => selectCommand(cmd)}
@@ -1411,7 +1460,9 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                     <motion.button
                       key={friend.id}
                       initial={false}
-                      animate={{ backgroundColor: isSelected ? 'rgba(255,255,255,0.04)' : 'transparent' }}
+                      animate={{
+                        backgroundColor: isSelected ? 'rgba(255,255,255,0.04)' : 'transparent'
+                      }}
                       transition={{ duration: 0.1 }}
                       data-suggestion-selected={isSelected}
                       onClick={() => {
@@ -1431,7 +1482,9 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                         <div className="text-[13px] font-medium truncate text-neutral-200 group-hover:text-white transition-colors">
                           {friend.displayName}
                         </div>
-                        <div className="text-[11px] text-neutral-500 truncate mt-0.5">@{friend.username}</div>
+                        <div className="text-[11px] text-neutral-500 truncate mt-0.5">
+                          @{friend.username}
+                        </div>
                       </div>
                       {friend.gameActivity && (
                         <div className="flex items-center gap-1.5 text-[10px] font-medium px-2 py-1 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
@@ -1500,7 +1553,9 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                 <ArrowLeft size={16} strokeWidth={2} />
               </motion.button>
               <div className="flex-1">
-                <div className="text-[10px] uppercase tracking-wider text-neutral-500 font-medium mb-0.5">Search Results</div>
+                <div className="text-[10px] uppercase tracking-wider text-neutral-500 font-medium mb-0.5">
+                  Search Results
+                </div>
                 <div className="text-[13px] text-white font-medium">
                   {searchResults.length} {searchResults.length === 1 ? 'item' : 'items'} found
                 </div>
@@ -1527,7 +1582,9 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                       <motion.button
                         key={`${item.itemType}-${item.id}`}
                         initial={false}
-                        animate={{ backgroundColor: isSelected ? 'rgba(255,255,255,0.04)' : 'transparent' }}
+                        animate={{
+                          backgroundColor: isSelected ? 'rgba(255,255,255,0.04)' : 'transparent'
+                        }}
                         transition={{ duration: 0.1 }}
                         data-result-selected={isSelected}
                         data-index={idx}
@@ -1582,19 +1639,21 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                           </div>
                         </div>
                         <div className="flex items-center gap-2 flex-shrink-0">
-                          <span className={cn(
-                            'text-[10px] font-medium px-1.5 py-0.5 rounded-md border flex items-center gap-1',
-                            resultTypeBadges.catalog.className
-                          )}>
+                          <span
+                            className={cn(
+                              'text-[10px] font-medium px-1.5 py-0.5 rounded-md border flex items-center gap-1',
+                              resultTypeBadges.catalog.className
+                            )}
+                          >
                             {resultTypeBadges.catalog.icon}
                             {item.itemType}
                           </span>
-                          <ChevronRight 
-                            size={14} 
+                          <ChevronRight
+                            size={14}
                             className={cn(
                               'text-neutral-600 transition-all duration-150',
                               isSelected ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-1'
-                            )} 
+                            )}
                           />
                         </div>
                       </motion.button>
@@ -1629,20 +1688,28 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         <div className="flex items-center justify-between px-4 py-2.5 border-t border-white/[0.04] bg-gradient-to-b from-transparent to-neutral-950/50">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-1.5 text-neutral-600">
-              <kbd className="w-5 h-5 flex items-center justify-center text-[10px] font-medium bg-white/[0.04] border border-white/[0.06] rounded">↑</kbd>
-              <kbd className="w-5 h-5 flex items-center justify-center text-[10px] font-medium bg-white/[0.04] border border-white/[0.06] rounded">↓</kbd>
+              <kbd className="w-5 h-5 flex items-center justify-center text-[10px] font-medium bg-white/[0.04] border border-white/[0.06] rounded">
+                ↑
+              </kbd>
+              <kbd className="w-5 h-5 flex items-center justify-center text-[10px] font-medium bg-white/[0.04] border border-white/[0.06] rounded">
+                ↓
+              </kbd>
               <span className="ml-0.5 text-[10px]">navigate</span>
             </div>
             <div className="w-px h-3 bg-white/[0.06]" />
             <div className="flex items-center gap-1.5 text-neutral-600">
-              <kbd className="px-1.5 h-5 flex items-center justify-center text-[10px] font-medium bg-white/[0.04] border border-white/[0.06] rounded">↵</kbd>
+              <kbd className="px-1.5 h-5 flex items-center justify-center text-[10px] font-medium bg-white/[0.04] border border-white/[0.06] rounded">
+                ↵
+              </kbd>
               <span className="text-[10px]">select</span>
             </div>
             {step === 'search' && (
               <>
                 <div className="w-px h-3 bg-white/[0.06]" />
                 <div className="flex items-center gap-1.5 text-neutral-600">
-                  <kbd className="px-1.5 h-5 flex items-center justify-center text-[10px] font-medium bg-white/[0.04] border border-white/[0.06] rounded">&gt;</kbd>
+                  <kbd className="px-1.5 h-5 flex items-center justify-center text-[10px] font-medium bg-white/[0.04] border border-white/[0.06] rounded">
+                    &gt;
+                  </kbd>
                   <span className="text-[10px]">commands</span>
                 </div>
               </>
