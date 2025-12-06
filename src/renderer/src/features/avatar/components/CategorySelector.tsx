@@ -31,7 +31,8 @@ export const CategorySelector: React.FC<CategorySelectorProps> = ({
               onClick={() => onMainCategoryChange(category)}
               className={cn(
                 'gap-2',
-                !isActive && 'text-neutral-400 hover:text-white hover:bg-neutral-900'
+                !isActive &&
+                  'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-hover)]'
               )}
             >
               <Icon size={16} />
@@ -42,7 +43,7 @@ export const CategorySelector: React.FC<CategorySelectorProps> = ({
       </div>
 
       {/* Level 2: Sub Categories */}
-      <div className="flex items-center gap-2 px-4 py-3 overflow-x-auto bg-neutral-900/30">
+      <div className="flex items-center gap-2 px-4 py-3 overflow-x-auto bg-[var(--color-surface-muted)]">
         {CATEGORIES[mainCategory].map((sub) => (
           <Button
             key={sub}
@@ -52,8 +53,8 @@ export const CategorySelector: React.FC<CategorySelectorProps> = ({
             className={cn(
               'text-sm font-medium whitespace-nowrap border transition-colors',
               subCategory === sub
-                ? 'bg-neutral-800 text-white border-neutral-700 shadow-sm hover:bg-neutral-800'
-                : 'bg-transparent text-neutral-500 border-transparent hover:bg-neutral-800/50 hover:text-neutral-300'
+                ? 'bg-[var(--color-surface-hover)] text-[var(--color-text-primary)] border-[var(--color-border-strong)] shadow-sm'
+                : 'bg-transparent text-[var(--color-text-muted)] border-transparent hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text-primary)]'
             )}
           >
             {sub}

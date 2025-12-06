@@ -60,7 +60,7 @@ const GenericContextMenu: React.FC<GenericContextMenuProps> = ({
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 8, scale: 0.95 }}
           transition={{ duration: 0.15, ease: 'easeOut' }}
-          className="fixed z-[1100] bg-neutral-900 border border-neutral-800 rounded-xl shadow-2xl overflow-hidden"
+          className="fixed z-[1100] bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl shadow-2xl overflow-hidden"
           style={{ top: y, left: x, width }}
           onContextMenu={(e) => {
             e.preventDefault()
@@ -70,7 +70,7 @@ const GenericContextMenu: React.FC<GenericContextMenuProps> = ({
           <div className="p-1.5">
             {sections.map((section, sectionIndex) => (
               <React.Fragment key={sectionIndex}>
-                {sectionIndex > 0 && <div className="h-px bg-neutral-800 my-1" />}
+                {sectionIndex > 0 && <div className="h-px bg-[var(--color-border)] my-1" />}
                 {section.items.map((item, itemIndex) => (
                   <button
                     key={itemIndex}
@@ -81,7 +81,7 @@ const GenericContextMenu: React.FC<GenericContextMenuProps> = ({
                     className={`pressable w-full text-left px-3 py-2.5 text-sm flex items-center gap-2.5 rounded-lg transition-colors ${
                       item.variant === 'danger'
                         ? 'text-red-400 hover:bg-red-500/10 hover:text-red-300'
-                        : 'text-neutral-300 hover:bg-neutral-800 hover:text-white'
+                        : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text-primary)]'
                     }`}
                   >
                     {item.icon}

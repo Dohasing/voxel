@@ -20,7 +20,7 @@ const ProfileTab: React.FC<ProfileTabProps> = memo(
     }
 
     return (
-      <div className="absolute inset-0 flex flex-col w-full h-full bg-neutral-950 overflow-hidden font-sans">
+      <div className="absolute inset-0 flex flex-col w-full h-full bg-[var(--color-app-bg)] overflow-hidden font-sans">
         <UserProfileView
           userId={account.userId}
           requestCookie={account.cookie}

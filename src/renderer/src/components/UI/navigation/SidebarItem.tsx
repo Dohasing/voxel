@@ -33,8 +33,8 @@ const SidebarItem = ({
       className={cn(
         'w-full flex items-center py-4 mb-1 transition-colors duration-200 relative group',
         isActive
-          ? 'bg-[rgba(var(--accent-color-rgb),0.08)] text-[var(--accent-color)]'
-          : 'text-neutral-400 hover:text-neutral-200 hover:bg-[rgba(var(--accent-color-rgb),0.05)]',
+          ? 'bg-[var(--color-surface-hover)] text-[var(--color-text-primary)]'
+          : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-hover)]',
         isCollapsed ? 'justify-center' : 'px-6 gap-3'
       )}
     >
@@ -56,7 +56,7 @@ const SidebarItem = ({
       >
         {label}
         {count !== undefined && !isCollapsed && (
-          <span className="text-xs font-normal text-neutral-500 bg-neutral-800 px-1.5 py-0.5 rounded">
+          <span className="text-xs font-normal text-[var(--color-text-muted)] bg-[var(--color-surface-muted)] px-1.5 py-0.5 rounded">
             {count}
           </span>
         )}

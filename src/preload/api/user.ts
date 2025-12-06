@@ -24,7 +24,7 @@ export const accountApi = {
 
 export const usersApi = {
   getUserByUsername: (username: string) =>
-    invoke('get-user-by-username', S.userSummarySchema, username),
+    invoke('get-user-by-username', S.userSummarySchema.nullable(), username),
   getExtendedUserDetails: (cookie: string, userId: number) =>
     invoke('get-user-details-extended', S.extendedUserDetailsSchema, cookie, userId),
   getUserGroups: (userId: number) => invoke('get-user-groups', z.array(z.any()), userId),
@@ -44,7 +44,9 @@ export const usersApi = {
   getPlayerBadges: (cookie: string, userId: number) =>
     invoke('get-player-badges', z.any(), cookie, userId),
   getPastUsernames: (cookie: string, userId: number) =>
-    invoke('get-past-usernames', S.usernameHistorySchema, cookie, userId)
+    invoke('get-past-usernames', S.usernameHistorySchema, cookie, userId),
+  getUserProfile: (cookie: string, userId: number) =>
+    invoke('get-user-profile', S.userProfileResponseSchema, cookie, userId)
 }
 
 // ============================================================================

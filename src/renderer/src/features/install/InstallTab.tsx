@@ -43,7 +43,7 @@ import type { DetectedInstallation } from '@shared/ipc-schemas/system'
 interface UnifiedInstallation {
   id: string
   name: string
-  binaryType: 'WindowsPlayer' | 'WindowsStudio'
+  binaryType: BinaryType
   version: string
   channel: string
   path: string
@@ -53,16 +53,16 @@ interface UnifiedInstallation {
   detected: DetectedInstallation | null
 }
 
+const isMac = window.platform?.isMac ?? false
+
 const InstallTab: React.FC = () => {
   const { showNotification } = useNotification()
 
-  // Zustand store state and actions
   const installations = useInstallations()
   const history = useDeployHistory()
   const { addInstallation, updateInstallation, removeInstallation, setDeployHistory } =
     useInstallationsStore()
 
-  // Modal state
   const [showNewModal, setShowNewModal] = useState(false)
   const [showConfigModal, setShowConfigModal] = useState<UnifiedInstallation | null>(null)
   const [contextMenu, setContextMenu] = useState<{
@@ -70,21 +70,20 @@ const InstallTab: React.FC = () => {
     install: UnifiedInstallation | null
   }>({ position: null, install: null })
 
-  // Local form state (not persisted)
   const [newName, setNewName] = useState('')
-  const [newType, setNewType] = useState<BinaryType>(BinaryType.WindowsPlayer)
+  const [newType, setNewType] = useState<BinaryType>(
+    isMac ? BinaryType.MacPlayer : BinaryType.WindowsPlayer
+  )
   const [newVersion, setNewVersion] = useState('')
   const [newChannel, setNewChannel] = useState('live')
   const [isInstalling, setIsInstalling] = useState(false)
   const [isVerifying, setIsVerifying] = useState<string | null>(null)
   const [installProgress, setInstallProgress] = useState({ status: '', percent: 0, detail: '' })
 
-  // FFlags State
   const [fflags, setFFlags] = useState<Record<string, any>>({})
   const [newFlagKey, setNewFlagKey] = useState('')
   const [newFlagValue, setNewFlagValue] = useState('')
 
-  // Detected default installations
   const [detectedInstallations, setDetectedInstallations] = useState<DetectedInstallation[]>([])
 
   const [confirmModal, setConfirmModal] = useState<{
@@ -102,13 +101,11 @@ const InstallTab: React.FC = () => {
     isDangerous: false
   })
 
-  // Load deploy history on mount
   useEffect(() => {
     // @ts-ignore
     window.api.getDeployHistory().then(setDeployHistory).catch(console.error)
   }, [setDeployHistory])
 
-  // Detect default Roblox installations on mount
   useEffect(() => {
     const detectInstallations = async () => {
       try {
@@ -136,8 +133,7 @@ const InstallTab: React.FC = () => {
     const userInstalls: UnifiedInstallation[] = installations.map((install) => ({
       id: install.id,
       name: install.name,
-      binaryType:
-        install.binaryType === BinaryType.WindowsStudio ? 'WindowsStudio' : 'WindowsPlayer',
+      binaryType: install.binaryType,
       version: install.version,
       channel: install.channel,
       path: install.path,
@@ -150,8 +146,12 @@ const InstallTab: React.FC = () => {
     const detectedInstalls: UnifiedInstallation[] = filteredDetectedInstallations.map(
       (detected) => ({
         id: `detected-${detected.path}`,
-        name: detected.binaryType === 'WindowsStudio' ? 'Roblox Studio' : 'Roblox Player',
-        binaryType: detected.binaryType,
+        name:
+          detected.binaryType === BinaryType.WindowsStudio ||
+          detected.binaryType === BinaryType.MacStudio
+            ? 'Roblox Studio'
+            : 'Roblox Player',
+        binaryType: detected.binaryType as BinaryType,
         version: detected.version,
         channel: 'Default',
         path: detected.path,
@@ -165,7 +165,6 @@ const InstallTab: React.FC = () => {
     return [...userInstalls, ...detectedInstalls]
   }, [installations, filteredDetectedInstallations])
 
-  // Load FFlags when config modal opens
   useEffect(() => {
     if (showConfigModal) {
       loadFFlags(showConfigModal)
@@ -215,8 +214,17 @@ const InstallTab: React.FC = () => {
 
   const availableVersions = history[getApiType(newType)] || []
 
+  const binaryTypeOptions = isMac
+    ? [BinaryType.MacPlayer, BinaryType.MacStudio]
+    : [BinaryType.WindowsPlayer, BinaryType.WindowsStudio]
+
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    if (isMac) {
+      showNotification('Creating new installations is disabled on macOS for now.', 'warning')
+      return
+    }
 
     const versionToInstall = newVersion || availableVersions[0]
 
@@ -317,10 +325,7 @@ const InstallTab: React.FC = () => {
   }
 
   const handleVerify = (install: UnifiedInstallation) => {
-    // Get the binary type for API call
-    const binaryType =
-      install.original?.binaryType ??
-      (install.binaryType === 'WindowsStudio' ? BinaryType.WindowsStudio : BinaryType.WindowsPlayer)
+    const binaryType = install.original?.binaryType ?? install.binaryType
 
     setConfirmModal({
       isOpen: true,
@@ -344,7 +349,6 @@ const InstallTab: React.FC = () => {
           // @ts-ignore
           await window.api.verifyRobloxFiles(getApiType(binaryType), install.version, install.path)
 
-          // Only update store for user installations
           if (!install.isSystem) {
             updateInstallation(install.id, {
               lastUpdated: new Date().toISOString().split('T')[0],
@@ -369,13 +373,13 @@ const InstallTab: React.FC = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
-        className="flex flex-col h-full bg-neutral-950 overflow-hidden"
+        className="flex flex-col h-full bg-[var(--color-app-bg)] overflow-hidden text-[var(--color-text-secondary)]"
       >
         {/* Header */}
-        <div className="shrink-0 h-[72px] bg-neutral-950 border-b border-neutral-800 flex items-center justify-between px-6 z-20">
+        <div className="shrink-0 h-[72px] bg-[var(--color-surface)] border-b border-[var(--color-border)] flex items-center justify-between px-6 z-20">
           <div className="flex items-center gap-4">
-            <h1 className="text-xl font-bold text-white">Installations</h1>
-            <span className="flex items-center justify-center px-2.5 py-0.5 rounded-full bg-neutral-900 border border-neutral-800 text-xs font-semibold tracking-tight text-neutral-400">
+            <h1 className="text-xl font-bold text-[var(--color-text-primary)]">Installations</h1>
+            <span className="flex items-center justify-center px-2.5 py-0.5 rounded-full bg-[var(--color-surface-muted)] border border-[var(--color-border)] text-xs font-semibold tracking-tight text-[var(--color-text-muted)]">
               {totalInstallationsCount}
             </span>
           </div>
@@ -399,7 +403,7 @@ const InstallTab: React.FC = () => {
                       showNotification('Failed to refresh', 'error')
                     }
                   }}
-                  className="pressable flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-xs font-medium border bg-neutral-900 text-neutral-400 border-neutral-800 hover:border-neutral-700"
+                  className="pressable flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-xs font-medium border bg-[var(--color-surface-muted)] text-[var(--color-text-muted)] border-[var(--color-border)] hover:border-[var(--color-border-strong)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-hover)]"
                 >
                   <RefreshCw size={14} />
                   Refresh
@@ -407,7 +411,12 @@ const InstallTab: React.FC = () => {
               </TooltipTrigger>
               <TooltipContent>Refresh version history and installations</TooltipContent>
             </Tooltip>
-            <Button variant="default" onClick={() => setShowNewModal(true)} className="gap-2.5">
+            <Button
+              variant="default"
+              onClick={() => !isMac && setShowNewModal(true)}
+              className="gap-2.5"
+              disabled={isMac}
+            >
               <Plus size={18} />
               <span>New Installation</span>
             </Button>
@@ -428,16 +437,18 @@ const InstallTab: React.FC = () => {
           ) : (
             <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
               {allInstallations.map((install, index) => {
-                const isStudio = install.binaryType === 'WindowsStudio'
+                const isStudio =
+                  install.binaryType === BinaryType.WindowsStudio ||
+                  install.binaryType === BinaryType.MacStudio
                 const isThisVerifying = isVerifying === install.id
 
                 return (
                   <motion.div
                     key={install.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
                     transition={{ duration: 0.3, delay: index * 0.05 }}
-                    className="group bg-neutral-900/50 border border-neutral-800 rounded-xl overflow-hidden hover:border-neutral-700 hover:bg-neutral-900 transition-all"
+                    className="group bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl overflow-hidden shadow-sm transition-all duration-200 hover:bg-[var(--color-surface-strong)] hover:border-[var(--color-border-strong)] hover:shadow-[var(--shadow-lg)]"
                   >
                     {/* Card Header */}
                     <div className="p-4 pb-3">
@@ -483,7 +494,7 @@ const InstallTab: React.FC = () => {
                               install: install
                             })
                           }}
-                          className="pressable p-1.5 rounded-lg text-neutral-500 hover:text-white hover:bg-neutral-800 transition-colors opacity-0 group-hover:opacity-100"
+                          className="pressable p-1.5 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-hover)] transition-colors opacity-0 group-hover:opacity-100"
                         >
                           <MoreHorizontal size={16} />
                         </button>
@@ -539,7 +550,7 @@ const InstallTab: React.FC = () => {
                       <button
                         onClick={() => handleLaunch(install)}
                         disabled={isThisVerifying}
-                        className="pressable w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-white text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="pressable w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-[var(--color-surface-strong)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm font-medium transition-all hover:bg-[var(--color-surface-hover)] hover:border-[var(--color-border-strong)] hover:shadow-[var(--shadow-lg)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-surface)] disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <Play size={14} fill="currentColor" />
                         Launch
@@ -570,37 +581,38 @@ const InstallTab: React.FC = () => {
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
                   placeholder="e.g. My Custom Version"
-                  className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-[var(--accent-color)] focus:border-[var(--accent-color)] transition-all"
+                  className="w-full bg-[var(--color-surface-muted)] border border-[var(--color-border)] rounded-lg px-4 py-2.5 text-[var(--color-text-primary)] text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-app-bg)] transition-all placeholder:text-[var(--color-text-muted)] hover:border-[var(--color-border-strong)]"
                 />
               </div>
 
               <div className="space-y-2">
                 <label className="text-sm font-medium text-neutral-300 pb-1 block">Type</label>
                 <div className="grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setNewType(BinaryType.WindowsPlayer)}
-                    className={`pressable flex items-center gap-3 p-3 rounded-lg border transition-all ${
-                      newType === BinaryType.WindowsPlayer
-                        ? 'bg-emerald-500/10 border-emerald-500/50 text-emerald-400'
-                        : 'bg-neutral-950 border-neutral-800 text-neutral-400 hover:bg-neutral-800'
-                    }`}
-                  >
-                    <Laptop size={20} />
-                    <span className="text-sm font-medium">Player</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setNewType(BinaryType.WindowsStudio)}
-                    className={`pressable flex items-center gap-3 p-3 rounded-lg border transition-all ${
-                      newType === BinaryType.WindowsStudio
-                        ? 'bg-blue-500/10 border-blue-500/50 text-blue-400'
-                        : 'bg-neutral-950 border-neutral-800 text-neutral-400 hover:bg-neutral-800'
-                    }`}
-                  >
-                    <Box size={20} />
-                    <span className="text-sm font-medium">Studio</span>
-                  </button>
+                  {binaryTypeOptions.map((type) => {
+                    const isStudio =
+                      type === BinaryType.WindowsStudio || type === BinaryType.MacStudio
+                    const isSelected = newType === type
+                    const selectedClasses = isStudio
+                      ? 'bg-blue-500/10 border-blue-500/50 text-blue-400'
+                      : 'bg-emerald-500/10 border-emerald-500/50 text-emerald-400'
+                    return (
+                      <button
+                        key={type}
+                        type="button"
+                        onClick={() => setNewType(type)}
+                        className={`pressable flex items-center gap-3 p-3 rounded-lg border transition-all ${
+                          isSelected
+                            ? selectedClasses
+                            : 'bg-neutral-950 border-neutral-800 text-neutral-400 hover:bg-neutral-800'
+                        }`}
+                      >
+                        {isStudio ? <Box size={20} /> : <Laptop size={20} />}
+                        <span className="text-sm font-medium">
+                          {isStudio ? 'Studio' : 'Player'}
+                        </span>
+                      </button>
+                    )
+                  })}
                 </div>
               </div>
 
@@ -620,7 +632,7 @@ const InstallTab: React.FC = () => {
                     value={newVersion}
                     onChange={setNewVersion}
                     placeholder={availableVersions.length > 0 ? 'Latest' : 'Loading...'}
-                    buttonClassName="bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2.5 text-white text-sm"
+                    buttonClassName="bg-[var(--color-surface-muted)] border border-[var(--color-border)] hover:border-[var(--color-border-strong)] rounded-lg px-4 py-2.5 text-[var(--color-text-primary)] text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-app-bg)]"
                   />
                 </div>
                 <div className="space-y-2">
@@ -630,7 +642,7 @@ const InstallTab: React.FC = () => {
                     value={newChannel}
                     onChange={(e) => setNewChannel(e.target.value)}
                     placeholder="live"
-                    className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-[var(--accent-color)] focus:border-[var(--accent-color)] transition-all placeholder-neutral-600"
+                    className="w-full bg-[var(--color-surface-muted)] border border-[var(--color-border)] rounded-lg px-4 py-2.5 text-[var(--color-text-primary)] text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-app-bg)] transition-all placeholder:text-[var(--color-text-muted)] hover:border-[var(--color-border-strong)]"
                   />
                 </div>
               </div>
@@ -781,7 +793,6 @@ const InstallTab: React.FC = () => {
                     }
                   ]
                 },
-                // Only show delete option for non-system installations
                 ...(!contextMenu.install.isSystem
                   ? [
                       {

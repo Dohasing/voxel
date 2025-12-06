@@ -1,17 +1,25 @@
 import { app, safeStorage } from 'electron'
 import { join } from 'path'
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs'
-import { Account, DEFAULT_ACCENT_COLOR } from '../../../renderer/src/types'
+import { Account, DEFAULT_ACCENT_COLOR, TabId, ThemePreference } from '../../../renderer/src/types'
 import { MultiInstance } from '@main/lib/MultiInstance'
 import { z } from 'zod'
 import { accountSchema } from '../../../shared/ipc-schemas/user'
 import { favoriteItemSchema } from '../../../shared/ipc-schemas/avatar'
 import { pinService } from './PinService'
+import {
+  sanitizeSidebarHidden,
+  sanitizeSidebarOrder,
+  SIDEBAR_TAB_IDS
+} from '../../../shared/navigation'
 
 const customFontSchema = z.object({
   family: z.string(),
   url: z.string()
 })
+
+const sidebarTabIdEnum = z.enum(SIDEBAR_TAB_IDS)
+const themePreferenceEnum = z.enum(['system', 'dark', 'light'])
 
 const storeDataSchema = z.object({
   sidebarWidth: z.number().optional(),
@@ -32,7 +40,10 @@ const storeDataSchema = z.object({
       allowMultipleInstances: z.boolean().optional(),
       defaultInstallationPath: z.string().nullable().optional(),
       accentColor: z.string().optional(),
+      theme: themePreferenceEnum.optional(),
       showSidebarProfileCard: z.boolean().optional(),
+      sidebarTabOrder: z.array(sidebarTabIdEnum).optional(),
+      sidebarHiddenTabs: z.array(sidebarTabIdEnum).optional(),
       // pinCodeHash stores the encrypted, hashed PIN (not plain text)
       pinCodeHash: z.string().nullable().optional()
     })
@@ -87,7 +98,13 @@ class StorageService {
         this.data = {}
       }
 
-      // Apply multi-instance setting
+      // Disable multi-instance on non-Windows to avoid no-op / confusion
+      if (process.platform !== 'win32') {
+        if (this.data.settings) {
+          this.data.settings.allowMultipleInstances = false
+        }
+      }
+
       if (this.data.settings?.allowMultipleInstances) {
         MultiInstance.Enable()
       } else {
@@ -146,13 +163,10 @@ class StorageService {
     const accounts = (this.data.accounts || []) as Account[]
     const pinHash = this.getPinHash()
 
-    // Security check: If a PIN is set, only decrypt cookies if PIN has been verified in main process
     if (pinHash && !pinService.isPinCurrentlyVerified()) {
-      // Return accounts without cookies until PIN is verified
-      // This is expected behavior on app startup before PIN entry
       return accounts.map((account) => ({
         ...account,
-        cookie: undefined // Don't expose cookie data until authenticated
+        cookie: undefined
       }))
     }
 
@@ -161,18 +175,15 @@ class StorageService {
       return accounts
     }
 
-    // Get encryption salt and verified PIN for PIN-layer decryption
     const encryptionSalt = pinHash ? pinService.getEncryptionSalt(pinHash) : null
     const verifiedPin = pinService.getVerifiedPin()
 
     return accounts.map((account) => {
       if (account.cookie) {
         try {
-          // First, decrypt with safeStorage (OS-level encryption)
           const encryptedBuffer = Buffer.from(account.cookie, 'base64')
           let decryptedCookie = safeStorage.decryptString(encryptedBuffer)
 
-          // If PIN is set and we have the verified PIN, decrypt the PIN layer
           if (pinHash && encryptionSalt && verifiedPin) {
             const pinDecrypted = pinService.decryptWithPin(
               decryptedCookie,
@@ -204,7 +215,6 @@ class StorageService {
       return
     }
 
-    // Get encryption salt and verified PIN for PIN-layer encryption
     const pinHash = this.getPinHash()
     const encryptionSalt = pinHash ? pinService.getEncryptionSalt(pinHash) : null
     const verifiedPin = pinService.getVerifiedPin()
@@ -214,7 +224,6 @@ class StorageService {
         try {
           let cookieToEncrypt = account.cookie
 
-          // If PIN is set and verified, first encrypt with PIN-derived key
           if (pinHash && encryptionSalt && verifiedPin) {
             const pinEncrypted = pinService.encryptWithPin(
               account.cookie,
@@ -229,12 +238,10 @@ class StorageService {
             }
           }
 
-          // Then encrypt with safeStorage (OS-level encryption)
           const encryptedBuffer = safeStorage.encryptString(cookieToEncrypt)
           return { ...account, cookie: encryptedBuffer.toString('base64') }
         } catch (error) {
           console.error(`Failed to encrypt cookie for account ${account.username}:`, error)
-          // If encryption fails, we probably shouldn't save the plain cookie.
           return { ...account, cookie: undefined }
         }
       }
@@ -282,13 +289,21 @@ class StorageService {
   }
 
   public getSettings() {
+    const sidebarTabOrder = sanitizeSidebarOrder(this.data.settings?.sidebarTabOrder)
+    const sidebarHiddenTabs = sanitizeSidebarHidden(this.data.settings?.sidebarHiddenTabs)
+    const storedAccent = this.data.settings?.accentColor
+    const accentColor =
+      storedAccent && storedAccent !== '#ffffff' ? storedAccent : DEFAULT_ACCENT_COLOR
+
     return {
       primaryAccountId: this.data.settings?.primaryAccountId ?? null,
       allowMultipleInstances: this.data.settings?.allowMultipleInstances ?? false,
       defaultInstallationPath: this.data.settings?.defaultInstallationPath ?? null,
-      accentColor: this.data.settings?.accentColor ?? DEFAULT_ACCENT_COLOR,
+      accentColor,
+      theme: (this.data.settings?.theme as ThemePreference | undefined) ?? 'system',
       showSidebarProfileCard: this.data.settings?.showSidebarProfileCard ?? true,
-      // Return whether a PIN is set (never expose actual PIN data)
+      sidebarTabOrder,
+      sidebarHiddenTabs,
       pinCode: this.data.settings?.pinCodeHash ? 'SET' : null
     }
   }
@@ -315,16 +330,13 @@ class StorageService {
   } {
     const existingHash = this.getPinHash()
 
-    // If a PIN is already set, require current PIN verification before change/removal
     if (existingHash) {
       if (!currentPin) {
         return { success: false, error: 'Current PIN required to change or remove PIN' }
       }
 
-      // Verify current PIN
       const verifyResult = pinService.verifyCurrentPinForChange(currentPin, existingHash)
       if (!verifyResult.success) {
-        // Update stored hash with new lockout state
         if (verifyResult.updatedEncryptedData) {
           if (!this.data.settings) {
             this.data.settings = {}
@@ -372,7 +384,6 @@ class StorageService {
     pinService.markVerified()
     pinService.resetAttempts()
 
-    // Temporarily set the verified PIN in PinService for re-encryption.
     const newEncryptionSalt = pinService.getEncryptionSalt(hash)
     if (newEncryptionSalt && decryptedAccounts.length > 0) {
       this.save()
@@ -401,14 +412,12 @@ class StorageService {
     const encryptedAccounts = accounts.map((account) => {
       if (account.cookie) {
         try {
-          // First encrypt with PIN-derived key
           const pinEncrypted = pinService.encryptWithPin(account.cookie, pin, encryptionSalt)
           if (!pinEncrypted) {
             console.error(`Failed to PIN-encrypt cookie for account ${account.username}`)
             return { ...account, cookie: undefined }
           }
 
-          // Then encrypt with safeStorage (OS-level encryption)
           const encryptedBuffer = safeStorage.encryptString(pinEncrypted)
           return { ...account, cookie: encryptedBuffer.toString('base64') }
         } catch (error) {
@@ -434,14 +443,12 @@ class StorageService {
   } {
     const hash = this.getPinHash()
 
-    // No PIN hash means no PIN is set
     if (!hash) {
       return { success: false, locked: false, remainingAttempts: 5 }
     }
 
     const result = pinService.verifyPin(pin, hash)
 
-    // Update stored hash with new lockout state if changed
     if (result.updatedEncryptedData) {
       if (!this.data.settings) {
         this.data.settings = {}
@@ -482,7 +489,10 @@ class StorageService {
     allowMultipleInstances?: boolean
     defaultInstallationPath?: string | null
     accentColor?: string
+    theme?: ThemePreference
     showSidebarProfileCard?: boolean
+    sidebarTabOrder?: TabId[]
+    sidebarHiddenTabs?: TabId[]
     pinCode?: string | null
   }): void {
     const nextSettings = { ...this.getSettings() }
@@ -491,8 +501,12 @@ class StorageService {
       nextSettings.primaryAccountId = settings.primaryAccountId ?? null
     }
 
-    if ('allowMultipleInstances' in settings) {
-      nextSettings.allowMultipleInstances = !!settings.allowMultipleInstances
+    if (process.platform === 'win32') {
+      if ('allowMultipleInstances' in settings) {
+        nextSettings.allowMultipleInstances = !!settings.allowMultipleInstances
+      }
+    } else {
+      nextSettings.allowMultipleInstances = false
     }
 
     if ('defaultInstallationPath' in settings) {
@@ -503,20 +517,41 @@ class StorageService {
       nextSettings.accentColor = settings.accentColor
     }
 
+    if ('theme' in settings && typeof settings.theme === 'string') {
+      nextSettings.theme = settings.theme as ThemePreference
+    }
+
     if ('showSidebarProfileCard' in settings) {
       nextSettings.showSidebarProfileCard = !!settings.showSidebarProfileCard
     }
 
-    // Handle PIN separately through setPin method
+    if ('sidebarTabOrder' in settings) {
+      nextSettings.sidebarTabOrder = sanitizeSidebarOrder(
+        Array.isArray(settings.sidebarTabOrder)
+          ? (settings.sidebarTabOrder as TabId[])
+          : nextSettings.sidebarTabOrder
+      )
+    }
+
+    if ('sidebarHiddenTabs' in settings) {
+      nextSettings.sidebarHiddenTabs = sanitizeSidebarHidden(
+        Array.isArray(settings.sidebarHiddenTabs)
+          ? (settings.sidebarHiddenTabs as TabId[])
+          : nextSettings.sidebarHiddenTabs
+      )
+    }
+
     if ('pinCode' in settings) {
       this.setPin(settings.pinCode ?? null)
     }
 
-    // Update other settings (excluding pinCode which is handled above)
+    nextSettings.sidebarTabOrder = sanitizeSidebarOrder(nextSettings.sidebarTabOrder)
+    nextSettings.sidebarHiddenTabs = sanitizeSidebarHidden(nextSettings.sidebarHiddenTabs)
+
     const { pinCode: _, ...settingsWithoutPin } = nextSettings
     this.data.settings = {
-      ...this.data.settings,
-      ...settingsWithoutPin
+      ...(this.data.settings ?? {}),
+      ...(settingsWithoutPin as any)
     }
     this.save()
 
@@ -569,7 +604,6 @@ class StorageService {
 
   public addCustomFont(font: { family: string; url: string }): void {
     const fonts = this.data.customFonts || []
-    // Don't add duplicate fonts
     if (!fonts.some((f) => f.family === font.family)) {
       this.data.customFonts = [...fonts, font]
       this.save()
@@ -579,7 +613,6 @@ class StorageService {
   public removeCustomFont(family: string): void {
     const fonts = this.data.customFonts || []
     this.data.customFonts = fonts.filter((f) => f.family !== family)
-    // If the active font was removed, reset to default
     if (this.data.activeFont === family) {
       this.data.activeFont = null
     }

@@ -25,7 +25,7 @@ export default defineConfig({
     ],
     build: {
       rollupOptions: {
-        external: ['koffi']
+        external: ['koffi', 'better-sqlite3']
       }
     }
   },
@@ -42,6 +42,7 @@ export default defineConfig({
     define: {
       __APP_VERSION__: JSON.stringify(pkg.version)
     },
+    assetsInclude: ['**/*.dds'], // Include DDS files as assets
     plugins: [react(), tailwindcss()]
   }
 })

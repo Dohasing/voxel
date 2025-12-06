@@ -20,7 +20,6 @@ const OnboardingScreen: React.FC = () => {
   const { currentStep, setCurrentStep, skipStep, completeOnboarding } = useOnboardingStore()
   const [showWelcomeContent, setShowWelcomeContent] = useState(false)
 
-  // Focus window on first launch
   useEffect(() => {
     window.api.focusWindow()
   }, [])
@@ -30,6 +29,7 @@ const OnboardingScreen: React.FC = () => {
       const timer = setTimeout(() => setShowWelcomeContent(true), 1500)
       return () => clearTimeout(timer)
     }
+    return undefined
   }, [currentStep])
 
   const currentStepIndex = STEPS.findIndex((s) => s.id === currentStep)

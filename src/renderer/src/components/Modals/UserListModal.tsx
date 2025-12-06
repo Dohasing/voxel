@@ -42,21 +42,18 @@ const UserListModal: React.FC<UserListModalProps> = ({
 
   useEffect(() => {
     if (isOpen) {
-      // Reset state immediately
       setUsers([])
       setCursor(null)
       setHasMore(true)
       setError(null)
       setSearchQuery('')
 
-      // Defer API request until animation completes to prevent frame drops
       fetchTimeoutRef.current = setTimeout(() => {
         fetchUsers(null)
       }, ANIMATION_DELAY_MS)
     }
 
     return () => {
-      // Cleanup timeout if modal closes during animation
       if (fetchTimeoutRef.current) {
         clearTimeout(fetchTimeoutRef.current)
         fetchTimeoutRef.current = null
@@ -75,7 +72,6 @@ const UserListModal: React.FC<UserListModalProps> = ({
         let nextCursor: string | null = null
 
         if (type === 'friends') {
-          // Use paginated friends endpoint to avoid loading all friends at once
           const res = await window.api.getFriendsPaged(
             requestCookie,
             numericUserId,
@@ -113,7 +109,6 @@ const UserListModal: React.FC<UserListModalProps> = ({
           })
         }
 
-        // Wrap large list updates in startTransition to prevent animation jank
         startTransition(() => {
           setUsers((prev) => (currentCursor ? [...prev, ...newUsers] : newUsers))
         })
@@ -171,7 +166,7 @@ const UserListModal: React.FC<UserListModalProps> = ({
         <div className="flex flex-col gap-4 p-6 border-b border-neutral-800 bg-neutral-900/50 backdrop-blur-md z-10">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-neutral-800/50 rounded-xl border border-neutral-700/50">
+              <div className="p-2.5 rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-surface-strong)]">
                 <User className="text-white" size={20} />
               </div>
               <div>
@@ -195,7 +190,7 @@ const UserListModal: React.FC<UserListModalProps> = ({
               placeholder={`Search ${title.toLowerCase()}...`}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-neutral-900/50 border border-neutral-800 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-white/10 focus:border-neutral-700 transition-all"
+              className="w-full bg-[var(--color-surface-hover)] border border-[var(--color-border-strong)] rounded-xl py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-[var(--accent-color-ring)] focus:border-[var(--color-border-strong)] transition-all"
             />
           </div>
         </div>
@@ -229,7 +224,7 @@ const UserListModal: React.FC<UserListModalProps> = ({
                     >
                       {/* Avatar */}
                       <div className="relative shrink-0">
-                        <div className="w-14 h-14 rounded-full bg-neutral-800 overflow-hidden ring-2 ring-neutral-800 group-hover:ring-neutral-700 transition-all">
+                        <div className="w-14 h-14 rounded-full bg-[var(--color-surface-strong)] overflow-hidden ring-2 ring-[var(--color-border-strong)] group-hover:ring-[var(--accent-color-ring)] transition-all">
                           <img
                             src={user.avatarUrl}
                             alt={user.displayName}
@@ -238,7 +233,7 @@ const UserListModal: React.FC<UserListModalProps> = ({
                         </div>
                         {isOnline && (
                           <div
-                            className={`absolute bottom-0 right-0 w-4 h-4 rounded-full border-[3px] border-neutral-900 ${statusColor}`}
+                            className={`absolute bottom-0 right-0 w-4 h-4 rounded-full border-[3px] border-[var(--color-surface-strong)] ${statusColor}`}
                           />
                         )}
                       </div>

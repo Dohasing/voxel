@@ -35,11 +35,9 @@ const AddAccountModal: React.FC<AddAccountModalProps> = ({ isOpen, onClose, onAd
   const [isLoading, setIsLoading] = useState(false)
   const [method, setMethod] = useState<'cookie' | 'quick' | 'browser'>('quick')
 
-  // Cookie Method State
   const [cookie, setCookie] = useState('')
   const [isCookieBlurred, setIsCookieBlurred] = useState(true)
 
-  // Quick Login State
   const [quickLoginData, setQuickLoginData] = useState<{
     code: string
     privateKey: string
@@ -68,7 +66,6 @@ const AddAccountModal: React.FC<AddAccountModalProps> = ({ isOpen, onClose, onAd
     }
   }, [isOpen])
 
-  // Generate code when switching to quick login
   useEffect(() => {
     if (isOpen && method === 'quick' && !quickLoginData && !isLoading) {
       generateCode()
@@ -125,7 +122,6 @@ const AddAccountModal: React.FC<AddAccountModalProps> = ({ isOpen, onClose, onAd
           setQuickLoginData(null)
           return
         } else if (result.status === 'CodeInvalid') {
-          // Code expired or invalid, regenerate a new one
           stopPolling()
           setQuickLoginData(null)
           generateCode()
@@ -150,9 +146,10 @@ const AddAccountModal: React.FC<AddAccountModalProps> = ({ isOpen, onClose, onAd
       const cookie = await window.api.completeQuickLogin(code, privateKey)
       await onAdd(cookie)
       onClose()
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to complete quick login:', error)
-      setQuickLoginStatus('Failed to exchange token')
+      setQuickLoginStatus(error?.message || 'Failed to exchange token')
+    } finally {
       setIsLoading(false)
     }
   }

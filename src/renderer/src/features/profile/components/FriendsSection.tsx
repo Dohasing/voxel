@@ -45,12 +45,14 @@ export const FriendsSection: React.FC<FriendsSectionProps> = ({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5, delay: 0.2 }}
-      className="bg-neutral-900/50 border border-neutral-800 rounded-xl p-5"
+      className="bg-[var(--color-surface-strong)] border border-[var(--color-border)] rounded-xl p-5 shadow-[var(--shadow-lg)]/40"
     >
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-bold text-white flex items-center gap-2">Friends</h3>
+        <h3 className="text-lg font-bold text-[var(--color-text-primary)] flex items-center gap-2">
+          Friends
+        </h3>
         <button
-          className="pressable text-xs font-bold text-neutral-400 hover:text-white flex items-center gap-2 transition-colors bg-neutral-800 px-3 py-1.5 rounded-lg"
+          className="pressable text-xs font-bold flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--color-surface-hover)] border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-strong)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-app-bg)] transition-colors"
           onClick={onViewAll}
         >
           View All <SlidingNumber number={friendCount} formatter={formatNumber} />{' '}
@@ -68,10 +70,10 @@ export const FriendsSection: React.FC<FriendsSectionProps> = ({
               exit={{ opacity: 0, scale: 0.8 }}
               transition={{ duration: 0.15 }}
               onClick={() => scroll('left')}
-              className="absolute -left-3 top-1/2 -translate-y-1/2 z-20 w-10 h-10 flex items-center justify-center bg-neutral-800 hover:bg-neutral-700 rounded-full shadow-lg transition-colors border border-neutral-700"
+              className="absolute -left-3 top-1/2 -translate-y-1/2 z-20 w-10 h-10 flex items-center justify-center bg-[var(--color-surface-muted)] hover:bg-[var(--color-surface-hover)] rounded-full shadow-lg transition-colors border border-[var(--color-border)]"
               aria-label="Scroll left"
             >
-              <ChevronLeft size={24} className="text-white" />
+              <ChevronLeft size={24} className="text-[var(--color-text-primary)]" />
             </motion.button>
           )}
         </AnimatePresence>
@@ -84,20 +86,20 @@ export const FriendsSection: React.FC<FriendsSectionProps> = ({
               exit={{ opacity: 0, scale: 0.8 }}
               transition={{ duration: 0.15 }}
               onClick={() => scroll('right')}
-              className="absolute -right-3 top-1/2 -translate-y-1/2 z-20 w-10 h-10 flex items-center justify-center bg-neutral-800 hover:bg-neutral-700 rounded-full shadow-lg transition-colors border border-neutral-700"
+              className="absolute -right-3 top-1/2 -translate-y-1/2 z-20 w-10 h-10 flex items-center justify-center bg-[var(--color-surface-muted)] hover:bg-[var(--color-surface-hover)] rounded-full shadow-lg transition-colors border border-[var(--color-border)]"
               aria-label="Scroll right"
             >
-              <ChevronRight size={24} className="text-white" />
+              <ChevronRight size={24} className="text-[var(--color-text-primary)]" />
             </motion.button>
           )}
         </AnimatePresence>
         {/* Left fade gradient */}
         {canScrollLeft && (
-          <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-[rgb(16,16,16)] to-transparent z-10 pointer-events-none" />
+          <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-[var(--color-surface-strong)] to-transparent z-10 pointer-events-none" />
         )}
         {/* Right fade gradient */}
         {canScrollRight && (
-          <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-[rgb(16,16,16)] to-transparent z-10 pointer-events-none" />
+          <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-[var(--color-surface-strong)] to-transparent z-10 pointer-events-none" />
         )}
         <div ref={scrollRef} className="overflow-x-auto pb-2 pt-2 scrollbar-hide">
           <div className="flex gap-4 pl-3 pr-3">
@@ -120,7 +122,7 @@ export const FriendsSection: React.FC<FriendsSectionProps> = ({
                       if (friendId) onSelectProfile?.(friendId)
                     }}
                   >
-                    <div className="relative w-26 h-26 rounded-full bg-neutral-800 shadow-md ring-2 ring-transparent group-hover:ring-neutral-700 transition-all overflow-hidden">
+                    <div className="relative w-26 h-26 rounded-full bg-[var(--color-surface-hover)] shadow-md ring-2 ring-transparent group-hover:ring-[var(--color-border-strong)] transition-all overflow-hidden">
                       {friend.avatarUrl && (
                         <img
                           src={friend.avatarUrl}
@@ -130,13 +132,13 @@ export const FriendsSection: React.FC<FriendsSectionProps> = ({
                       )}
                     </div>
                     <div className="text-center w-full">
-                      <div className="text-sm font-bold text-white truncate">
+                      <div className="text-sm font-bold text-[var(--color-text-primary)] truncate">
                         {friend.displayName}
                       </div>
-                      <div className="text-xs font-medium text-neutral-500 truncate mt-0.5">
+                      <div className="text-xs font-medium text-[var(--color-text-muted)] truncate mt-0.5">
                         {usernameLabel}
                       </div>
-                      <div className="flex items-center justify-center gap-1 text-[11px] font-semibold text-neutral-400 mt-0.5">
+                      <div className="flex items-center justify-center gap-1 text-[11px] font-semibold text-[var(--color-text-secondary)] mt-0.5">
                         <span
                           className={`inline-block w-2 h-2 rounded-full ${getStatusColor(friendStatus)}`}
                         />
@@ -147,7 +149,9 @@ export const FriendsSection: React.FC<FriendsSectionProps> = ({
                 )
               })
             ) : (
-              <div className="text-neutral-500 text-sm py-4 pl-2">No friends found.</div>
+              <div className="text-[var(--color-text-muted)] text-sm py-4 pl-2">
+                No friends found.
+              </div>
             )}
           </div>
         </div>

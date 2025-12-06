@@ -39,7 +39,8 @@ import type {
   TransactionsResponse,
   TransactionTypeEnum,
   UpdateState,
-  UpdateActionResult
+  UpdateActionResult,
+  UserProfileResponse
 } from '../../../shared/ipc-schemas/index'
 
 export interface AccountApi {
@@ -161,7 +162,7 @@ export interface SocialApi {
   declineFriendRequest: (cookie: string, requesterUserId: number) => Promise<SuccessResponse>
   unfriend: (cookie: string, targetUserId: number) => Promise<SuccessResponse>
   blockUser: (cookie: string, targetUserId: number) => Promise<SuccessResponse>
-  getUserByUsername: (username: string) => Promise<UserSummary>
+  getUserByUsername: (username: string) => Promise<UserSummary | null>
   getUserGroups: (userId: number) => Promise<UserGroupRole[]>
 }
 
@@ -273,6 +274,7 @@ export interface InventoryApi {
   getPlayerBadges: (cookie: string, userId: number) => Promise<any>
   getCollectibles: (cookie: string, userId: number) => Promise<any>
   getPastUsernames: (cookie: string, userId: number) => Promise<UsernameHistory>
+  getUserProfile: (cookie: string, userId: number) => Promise<UserProfileResponse>
   checkAssetOwnership: (
     cookie: string,
     userId: number,
@@ -286,6 +288,7 @@ export interface LogsApi {
   getLogContent: (filename: string) => Promise<string>
   deleteLog: (filename: string) => Promise<boolean>
   deleteAllLogs: () => Promise<boolean>
+  openLogFile: (filename: string) => Promise<boolean>
 }
 
 export interface DeployApi {
@@ -657,6 +660,70 @@ export interface UpdaterApi {
   onUpdaterStatus: (callback: (state: UpdateState) => void) => () => void
 }
 
+// Catalog Database API types
+export interface CatalogDbSearchResult {
+  AssetId: number
+  Name: string
+  Description: string
+  AssetTypeId: number
+  IsLimited: boolean
+  IsLimitedUnique: boolean
+  PriceInRobux: number
+  IsForSale: boolean
+  Sales: number
+}
+
+export interface CatalogDbItem {
+  AssetId: number
+  ProductId: number | null
+  Name: string
+  Description: string | null
+  ProductType: string | null
+  AssetTypeId: number | null
+  Created: string | null
+  Updated: string | null
+  PriceInRobux: number | null
+  Sales: number
+  IsForSale: boolean
+  IsLimited: boolean
+  IsLimitedUnique: boolean
+  CollectiblesItemDetails: string | null
+}
+
+export interface SalesData {
+  id: number
+  sales: number
+}
+
+export interface CatalogDatabaseApi {
+  getAllCatalogItems: () => Promise<CatalogDbSearchResult[]>
+  searchCatalogDb: (query: string, limit?: number) => Promise<CatalogDbSearchResult[]>
+  getCatalogItemById: (assetId: number) => Promise<CatalogDbItem | null>
+  getSalesData: (assetId: number) => Promise<SalesData | null>
+  getBatchSalesData: (assetIds: number[]) => Promise<Record<number, number>>
+  getCatalogItemCount: () => Promise<number>
+  getCatalogDbStatus: () => Promise<CatalogDbStatus>
+  downloadCatalogDb: () => Promise<CatalogDbDownloadResult>
+}
+
+export interface CatalogDbStatus {
+  exists: boolean
+  downloading: boolean
+  error: string | null
+  path: string
+}
+
+export interface CatalogDbDownloadResult {
+  success: boolean
+  error?: string
+}
+
+export interface NewsApi {
+  news: {
+    getTweets: () => Promise<any[]>
+  }
+}
+
 export type WindowApi = AccountApi &
   FavoritesApi &
   SettingsApi &
@@ -673,4 +740,6 @@ export type WindowApi = AccountApi &
   CatalogApi &
   GroupsApi &
   TransactionsApi &
-  UpdaterApi
+  UpdaterApi &
+  CatalogDatabaseApi &
+  NewsApi

@@ -98,6 +98,7 @@ const GameCard = ({
 }: GameCardProps) => {
   const cardRef = useRef<HTMLDivElement>(null)
   const imageRef = useRef<HTMLImageElement>(null)
+  const mediaRef = useRef<HTMLDivElement>(null)
   const rafRef = useRef<number | null>(null)
   const isHoveredRef = useRef(false)
   const [imageLoaded, setImageLoaded] = useState(false)
@@ -105,15 +106,18 @@ const GameCard = ({
   const targetTransform = useRef({ x: 0, y: 0, scale: 1 })
   const currentTransform = useRef({ x: 0, y: 0, scale: 1 })
 
-  const PARALLAX_INTENSITY = 0.04 // Max translate percentage of width/height
-  const HOVER_SCALE = 1.12
+  const PARALLAX_INTENSITY = 0.01 // Max translate percentage of width/height
+  const HOVER_SCALE = 1.05
   const SMOOTHING = 0.12
   const EPSILON = 0.001
 
   const applyTransform = () => {
-    if (!imageRef.current) return
+    if (!mediaRef.current) return
     const { x, y, scale } = currentTransform.current
-    imageRef.current.style.transform = `translate(${x * 100}%, ${y * 100}%) scale(${scale})`
+    const transform = `translate(${x * 100}%, ${y * 100}%) scale(${scale})`
+    if (mediaRef.current) {
+      mediaRef.current.style.transform = transform
+    }
   }
 
   const animate = () => {
@@ -210,7 +214,7 @@ const GameCard = ({
           </div>
         )}
         {game.thumbnailUrl ? (
-          <>
+          <div ref={mediaRef} className="absolute inset-0 will-change-transform">
             {!imageLoaded && (
               <div className="absolute inset-0 overflow-hidden">
                 <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-neutral-700/50 to-transparent" />
@@ -225,22 +229,27 @@ const GameCard = ({
                 width: '100%',
                 height: '100%',
                 objectFit: 'cover',
-                transform: 'translate(0%, 0%) scale(1)',
-                transformOrigin: 'center center',
+                display: 'block',
                 opacity: imageLoaded ? 1 : 0,
                 transition: 'opacity 0.4s ease-out'
               }}
-              className="transform-gpu will-change-transform backface-hidden"
+              className="absolute inset-0 backface-hidden"
               loading="lazy"
             />
-          </>
+            <div
+              className="absolute inset-0 pointer-events-none translate-z-0"
+              style={{
+                background:
+                  'linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.45) 45%, rgba(0,0,0,0.9) 100%)'
+              }}
+            ></div>
+          </div>
         ) : (
           <div className="w-full h-full flex items-center justify-center text-neutral-700">
             <Users size={32} />
           </div>
         )}
-        <div className="absolute inset-x-0 bottom-0 top-1/4 bg-gradient-to-t from-black/90 via-black/50 to-transparent pointer-events-none transform-gpu translate-z-0"></div>
-        <div className="absolute bottom-3 left-3 right-3">
+        <div className="absolute bottom-3 left-3 right-3 z-20">
           <TruncatedTitle
             text={game.name}
             className="font-bold text-white truncate text-shadow-sm"

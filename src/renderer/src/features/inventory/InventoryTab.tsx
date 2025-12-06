@@ -73,14 +73,14 @@ const InventoryItemCard = ({
       transition={{ duration: 0.3, delay: Math.min(index * 0.02, 0.3) }}
       onClick={onClick}
       onContextMenu={handleContextMenu}
-      className="group relative flex flex-col bg-neutral-900/40 border border-neutral-800/50 rounded-xl overflow-hidden cursor-pointer hover:bg-neutral-800/60 hover:border-neutral-700 hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
+      className="group relative flex flex-col bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl overflow-hidden cursor-pointer hover:bg-[var(--color-surface-hover)] hover:border-[var(--color-border-strong)] hover:shadow-[0_18px_40px_rgba(0,0,0,0.35)] hover:-translate-y-1 transition-all duration-300"
     >
       {/* Image Container */}
       <div
-        className={`w-full relative overflow-hidden bg-neutral-800/40 ${isCompact ? 'aspect-square p-0' : 'aspect-square p-2'}`}
+        className={`w-full relative overflow-hidden bg-[var(--color-surface-muted)] ${isCompact ? 'aspect-square p-0' : 'aspect-square p-2'}`}
       >
         <div
-          className={`w-full h-full relative overflow-hidden bg-neutral-800/30 ${isCompact ? '' : 'rounded-lg'}`}
+          className={`w-full h-full relative overflow-hidden bg-[var(--color-surface-hover)] ${isCompact ? '' : 'rounded-lg'}`}
         >
           {thumbnailUrl ? (
             <>
@@ -105,11 +105,15 @@ const InventoryItemCard = ({
 
       {/* Item Info */}
       <div
-        className={`flex flex-col gap-1.5 border-t border-neutral-800/50 bg-neutral-900/30 ${isCompact ? 'p-2' : 'p-3'}`}
+        className={`flex flex-col gap-1.5 border-t border-[var(--color-border)] bg-[var(--color-surface-strong)] ${isCompact ? 'p-2' : 'p-3'}`}
       >
-        <h3 className="font-medium text-sm text-neutral-200 truncate">{displayName}</h3>
+        <h3 className="font-medium text-sm text-[var(--color-text-primary)] truncate">
+          {displayName}
+        </h3>
         {item.created && (
-          <p className="text-xs text-neutral-500">{new Date(item.created).toLocaleDateString()}</p>
+          <p className="text-xs text-[var(--color-text-muted)]">
+            {new Date(item.created).toLocaleDateString()}
+          </p>
         )}
       </div>
     </motion.div>

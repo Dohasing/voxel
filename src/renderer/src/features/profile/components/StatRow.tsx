@@ -32,8 +32,8 @@ export const StatRow: React.FC<StatRowProps> = ({
     <div
       className={`flex items-center justify-between py-2 -mx-4 px-4 ${
         isInteractive
-          ? 'cursor-pointer hover:bg-neutral-800/50 focus-visible:ring-1 focus-visible:ring-neutral-600 focus-visible:bg-neutral-800/40 outline-none'
-          : 'hover:bg-neutral-800/30'
+          ? 'cursor-pointer hover:bg-[var(--color-surface-hover)] focus-visible:ring-1 focus-visible:ring-[var(--focus-ring)] focus-visible:bg-[var(--color-surface-muted)] outline-none'
+          : 'hover:bg-[var(--color-surface-muted)]'
       }`}
       onClick={onClick}
       role={isInteractive ? 'button' : undefined}
@@ -45,11 +45,11 @@ export const StatRow: React.FC<StatRowProps> = ({
           : undefined
       }
     >
-      <div className="flex items-center gap-2.5 text-neutral-400">
+      <div className="flex items-center gap-2.5 text-[var(--color-text-muted)]">
         <Icon size={15} />
         <span className="text-sm font-medium">{label}</span>
       </div>
-      <div className="text-sm text-white font-semibold">{value}</div>
+      <div className="text-sm text-[var(--color-text-primary)] font-semibold">{value}</div>
     </div>
   )
 

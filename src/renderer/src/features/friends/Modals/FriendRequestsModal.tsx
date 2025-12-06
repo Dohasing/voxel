@@ -130,7 +130,7 @@ const RequestCard: React.FC<{
             <img
               src={request.avatarUrl}
               alt={request.displayName}
-              className="w-12 h-12 rounded-full bg-neutral-800 ring-2 ring-transparent group-hover/avatar:ring-[var(--accent-color-soft)] transition-all"
+              className="w-12 h-12 rounded-full bg-[var(--color-surface-strong)] ring-2 ring-[var(--color-border-strong)] group-hover/avatar:ring-[var(--accent-color-ring)] transition-all"
             />
           </button>
 
@@ -473,7 +473,7 @@ const FriendRequestsModal: React.FC<FriendRequestsModalProps> = ({
         <div className="flex flex-col gap-4 p-6 border-b border-neutral-800 bg-neutral-900/50 backdrop-blur-md z-10 shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-neutral-800/50 rounded-xl border border-neutral-700/50">
+              <div className="p-2.5 rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-surface-strong)]">
                 <Users className="text-white" size={20} />
               </div>
               <div>
@@ -508,7 +508,7 @@ const FriendRequestsModal: React.FC<FriendRequestsModalProps> = ({
               placeholder="Search requests..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-neutral-900/50 border border-neutral-800 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-white/10 focus:border-neutral-700 transition-all"
+              className="w-full bg-[var(--color-surface-hover)] border border-[var(--color-border-strong)] rounded-xl py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-[var(--accent-color-ring)] focus:border-[var(--color-border-strong)] transition-all"
             />
           </div>
         </div>
@@ -601,6 +601,7 @@ const FriendRequestsModal: React.FC<FriendRequestsModalProps> = ({
                 </div>
               )}
               components={{
+                Header: () => <div className="h-4" />,
                 Footer: () => <div className="h-4" />
               }}
             />

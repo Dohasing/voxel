@@ -37,7 +37,7 @@ interface CatalogFilterSidebarProps {
 
   creatorName: string
   onCreatorNameChange: (val: string) => void
-  onApplyCreator: () => void
+  onApplyCreator: (val: string) => void
 
   onClearAll: () => void
   hasActiveFilters: boolean
@@ -55,15 +55,15 @@ const FilterSection = ({
   const [isOpen, setIsOpen] = useState(isOpenDefault)
 
   return (
-    <div className="border-b border-neutral-800 py-4">
+    <div className="border-b border-[var(--color-border)] py-4">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex items-center justify-between w-full text-sm font-bold text-neutral-200 hover:text-white transition-colors group ${isOpen ? 'mb-2' : ''}`}
+        className={`flex items-center justify-between w-full text-sm font-bold text-[var(--color-text-primary)] hover:text-[var(--color-text-primary)] transition-colors group ${isOpen ? 'mb-2' : ''}`}
       >
         <span>{title}</span>
         <ChevronDown
           size={16}
-          className={`text-neutral-500 group-hover:text-white transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+          className={`text-[var(--color-text-muted)] group-hover:text-[var(--color-text-primary)] transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
         />
       </button>
       <AnimatePresence initial={false}>
@@ -132,7 +132,7 @@ export const CatalogFilterSidebar = ({
           className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-sm transition-colors group ${
             isSelected
               ? 'bg-[rgba(var(--accent-color-rgb),0.1)] text-[var(--accent-color)] font-medium'
-              : 'text-neutral-400 hover:text-white hover:bg-neutral-800/50'
+              : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-hover)] border border-transparent hover:border-[var(--color-border-strong)]'
           }`}
         >
           {category.subcategories.length > 0 ? (
@@ -155,7 +155,7 @@ export const CatalogFilterSidebar = ({
               transition={{ duration: 0.2 }}
               className="overflow-hidden"
             >
-              <div className="ml-5 pl-2 border-l border-neutral-800 space-y-0.5 py-1">
+              <div className="ml-5 pl-2 border-l border-[var(--color-border)] space-y-0.5 py-1">
                 {category.subcategories.map((sub) => (
                   <button
                     key={sub.subcategoryId}
@@ -166,7 +166,7 @@ export const CatalogFilterSidebar = ({
                     className={`w-full text-left px-2 py-1.5 rounded-lg text-xs transition-colors ${
                       selectedSubcategory?.subcategoryId === sub.subcategoryId
                         ? 'bg-[rgba(var(--accent-color-rgb),0.1)] text-[var(--accent-color)] font-medium'
-                        : 'text-neutral-500 hover:text-white hover:bg-neutral-800/50'
+                        : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-hover)] border border-transparent hover:border-[var(--color-border-strong)]'
                     }`}
                   >
                     {sub.name}
@@ -181,9 +181,9 @@ export const CatalogFilterSidebar = ({
   }
 
   return (
-    <div className="w-[260px] shrink-0 flex flex-col h-full border-r border-neutral-800 bg-[#111111]">
-      <div className="px-4 flex items-center justify-between border-b border-neutral-800 min-h-[72px]">
-        <div className="flex items-center gap-2 text-neutral-200">
+    <div className="w-[260px] shrink-0 flex flex-col h-full border-r border-[var(--color-border)] bg-[var(--color-surface-strong)]">
+      <div className="px-4 flex items-center justify-between border-b border-[var(--color-border)] min-h-[72px]">
+        <div className="flex items-center gap-2 text-[var(--color-text-primary)]">
           <Filter size={18} />
           <span className="font-bold">Filters</span>
         </div>
@@ -192,7 +192,7 @@ export const CatalogFilterSidebar = ({
             variant="ghost"
             size="sm"
             onClick={onClearAll}
-            className="h-7 px-2 text-xs text-neutral-500 hover:text-white"
+            className="h-7 px-2 text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
           >
             Reset
           </Button>
@@ -201,8 +201,8 @@ export const CatalogFilterSidebar = ({
 
       <div className="flex-1 overflow-y-auto p-4 scrollbar-thin">
         {/* Categories */}
-        <div className="pb-4 border-b border-neutral-800">
-          <div className="text-xs font-bold text-neutral-500 uppercase tracking-wider mb-3">
+        <div className="pb-4 border-b border-[var(--color-border)]">
+          <div className="text-xs font-bold text-[var(--color-text-muted)] uppercase tracking-wider mb-3">
             Categories
           </div>
           <div className="space-y-0.5">
@@ -219,10 +219,10 @@ export const CatalogFilterSidebar = ({
               <button
                 key={option.value}
                 onClick={() => onSalesTypeChange(option.value)}
-                className={`w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-sm transition-colors ${
+                className={`w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-sm transition-all border ${
                   salesType === option.value
-                    ? 'bg-[rgba(var(--accent-color-rgb),0.1)] text-[var(--accent-color)] font-medium'
-                    : 'text-neutral-400 hover:text-white hover:bg-neutral-800/50'
+                    ? 'bg-[var(--color-surface-hover)] border-[var(--color-border-strong)] text-[var(--color-text-primary)] font-medium shadow-[0_10px_30px_rgba(0,0,0,0.22)]'
+                    : 'border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-hover)] hover:border-[var(--color-border-strong)]'
                 }`}
               >
                 <span>{option.label}</span>
@@ -242,7 +242,7 @@ export const CatalogFilterSidebar = ({
                 placeholder="0"
                 label="Min"
               />
-              <div className="w-2 h-[1px] bg-neutral-700" />
+              <div className="w-2 h-[1px] bg-[var(--color-border)]" />
               <PriceInput
                 value={maxPrice}
                 onChange={onMaxPriceChange}
@@ -267,7 +267,7 @@ export const CatalogFilterSidebar = ({
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     onCreatorNameChange(localCreatorName)
-                    onApplyCreator()
+                    onApplyCreator(localCreatorName)
                   }
                 }}
                 onBlur={() => {
@@ -281,7 +281,7 @@ export const CatalogFilterSidebar = ({
                 variant="secondary"
                 onClick={() => {
                   onCreatorNameChange(localCreatorName)
-                  onApplyCreator()
+                  onApplyCreator(localCreatorName)
                 }}
                 className="h-9 w-9 shrink-0"
               >
@@ -296,7 +296,7 @@ export const CatalogFilterSidebar = ({
                 const newValue = isCurrentlyRoblox ? '' : 'Roblox'
                 setLocalCreatorName(newValue)
                 onCreatorNameChange(newValue)
-                onApplyCreator()
+                onApplyCreator(newValue)
               }}
             >
               <div
@@ -304,8 +304,8 @@ export const CatalogFilterSidebar = ({
                   relative w-4 h-4 rounded-full border flex items-center justify-center transition-all cursor-pointer flex-shrink-0
                   ${
                     localCreatorName === 'Roblox'
-                      ? 'border-[var(--accent-color)]'
-                      : 'border-neutral-600 group-hover:border-neutral-400'
+                      ? 'border-[var(--color-border-strong)] bg-[var(--color-surface-hover)]'
+                      : 'border-[var(--color-border)] group-hover:border-[var(--color-border-strong)]'
                   }
                 `}
               >
@@ -316,8 +316,8 @@ export const CatalogFilterSidebar = ({
               <span
                 className={`text-sm transition-colors ${
                   localCreatorName === 'Roblox'
-                    ? 'text-[var(--accent-color)]'
-                    : 'text-neutral-400 group-hover:text-white'
+                    ? 'text-[var(--color-text-primary)]'
+                    : 'text-[var(--color-text-muted)] group-hover:text-[var(--color-text-primary)]'
                 }`}
               >
                 ROBLOX
@@ -336,7 +336,7 @@ export const CatalogFilterSidebar = ({
               Show Unavailable
             </span>
             <div
-              className={`w-9 h-5 rounded-full relative transition-colors duration-200 ${unavailableItems === 'show' ? 'bg-[rgba(var(--accent-color-rgb),0.3)]' : 'bg-neutral-800'}`}
+              className={`w-9 h-5 rounded-full relative transition-colors duration-200 ${unavailableItems === 'show' ? 'bg-[rgba(var(--accent-color-rgb),0.2)]' : 'bg-neutral-800'}`}
             >
               <div
                 className={`absolute top-1 w-3 h-3 rounded-full shadow-sm transition-all duration-200 ${unavailableItems === 'show' ? 'translate-x-5 bg-white' : 'translate-x-1 bg-neutral-500'}`}

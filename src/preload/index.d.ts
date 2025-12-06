@@ -17,9 +17,17 @@ export interface Account {
   followingCount: number
 }
 
+export interface PlatformInfo {
+  isMac: boolean
+  isWindows: boolean
+  isLinux: boolean
+  platform: NodeJS.Platform
+}
+
 declare global {
   interface Window {
     electron: ElectronAPI
+    platform: PlatformInfo
     // api types are defined in renderer/src/window.d.ts
   }
 }

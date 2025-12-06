@@ -23,7 +23,7 @@ export const AvatarControls: React.FC<AvatarControlsProps> = ({
             size="icon"
             onClick={onRefresh}
             disabled={isRendering}
-            className="bg-black/60 backdrop-blur hover:bg-neutral-800"
+            className="bg-[var(--color-surface-muted)]/70 backdrop-blur hover:bg-[var(--color-surface-hover)] text-[var(--color-text-primary)]"
           >
             <RefreshCw size={16} />
           </Button>
@@ -36,7 +36,7 @@ export const AvatarControls: React.FC<AvatarControlsProps> = ({
             variant="secondary"
             size="icon"
             onClick={onReset}
-            className="bg-black/60 backdrop-blur hover:bg-neutral-800"
+            className="bg-[var(--color-surface-muted)]/70 backdrop-blur hover:bg-[var(--color-surface-hover)] text-[var(--color-text-primary)]"
           >
             <RotateCcw size={16} />
           </Button>

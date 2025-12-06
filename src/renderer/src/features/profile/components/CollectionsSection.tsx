@@ -38,13 +38,13 @@ export const CollectionsSection: React.FC<CollectionsSectionProps> = ({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5, delay: 0.25 }}
-      className="bg-neutral-900/50 border border-neutral-800 rounded-xl p-5"
+      className="bg-[var(--color-surface-strong)] border border-[var(--color-border)] rounded-xl p-5 shadow-[var(--shadow-lg)]/40"
     >
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-bold text-white">Collections</h3>
+        <h3 className="text-lg font-bold text-[var(--color-text-primary)]">Collections</h3>
         <button
           onClick={onViewAllClick}
-          className="pressable text-xs font-bold text-neutral-400 hover:text-white flex items-center gap-2 transition-colors bg-neutral-800 px-3 py-1.5 rounded-lg"
+          className="pressable text-xs font-bold flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--color-surface-hover)] border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-strong)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-app-bg)] transition-colors"
         >
           View All <ChevronRight size={14} />
         </button>
@@ -60,10 +60,10 @@ export const CollectionsSection: React.FC<CollectionsSectionProps> = ({
               exit={{ opacity: 0, scale: 0.8 }}
               transition={{ duration: 0.15 }}
               onClick={() => scroll('left')}
-              className="absolute -left-3 top-1/2 -translate-y-1/2 z-20 w-10 h-10 flex items-center justify-center bg-neutral-800 hover:bg-neutral-700 rounded-full shadow-lg transition-colors border border-neutral-700"
+              className="absolute -left-3 top-1/2 -translate-y-1/2 z-20 w-10 h-10 flex items-center justify-center bg-[var(--color-surface-muted)] hover:bg-[var(--color-surface-hover)] rounded-full shadow-lg transition-colors border border-[var(--color-border)]"
               aria-label="Scroll left"
             >
-              <ChevronLeft size={24} className="text-white" />
+              <ChevronLeft size={24} className="text-[var(--color-text-primary)]" />
             </motion.button>
           )}
         </AnimatePresence>
@@ -76,50 +76,50 @@ export const CollectionsSection: React.FC<CollectionsSectionProps> = ({
               exit={{ opacity: 0, scale: 0.8 }}
               transition={{ duration: 0.15 }}
               onClick={() => scroll('right')}
-              className="absolute -right-3 top-1/2 -translate-y-1/2 z-20 w-10 h-10 flex items-center justify-center bg-neutral-800 hover:bg-neutral-700 rounded-full shadow-lg transition-colors border border-neutral-700"
+              className="absolute -right-3 top-1/2 -translate-y-1/2 z-20 w-10 h-10 flex items-center justify-center bg-[var(--color-surface-muted)] hover:bg-[var(--color-surface-hover)] rounded-full shadow-lg transition-colors border border-[var(--color-border)]"
               aria-label="Scroll right"
             >
-              <ChevronRight size={24} className="text-white" />
+              <ChevronRight size={24} className="text-[var(--color-text-primary)]" />
             </motion.button>
           )}
         </AnimatePresence>
         {/* Left fade gradient */}
         {canScrollLeft && (
-          <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-[rgb(16,16,16)] to-transparent z-10 pointer-events-none" />
+          <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-[var(--color-surface-strong)] to-transparent z-10 pointer-events-none" />
         )}
         {/* Right fade gradient */}
         {canScrollRight && (
-          <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-[rgb(16,16,16)] to-transparent z-10 pointer-events-none" />
+          <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-[var(--color-surface-strong)] to-transparent z-10 pointer-events-none" />
         )}
         <div ref={scrollRef} className="overflow-x-auto pb-2 scrollbar-hide">
           <div className="flex gap-3 px-1">
-        {isLoading
-          ? Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="w-[calc(25%-9px)] shrink-0">
-                <SkeletonSquareCard />
-              </div>
-            ))
-          : collections.slice(0, 6).map((item) => {
-              const isLimited = item.cssTag === 'limited' || item.cssTag === 'limited-unique'
-              const isLimitedUnique = item.cssTag === 'limited-unique'
-              const isSoundHat = SOUND_HAT_IDS.includes(item.id)
-              return (
-                <div key={item.id} className="w-[calc(25%-9px)] shrink-0">
-                  <CollectionItemCard
-                    item={item}
-                    isLimited={isLimited}
-                    isLimitedUnique={isLimitedUnique}
-                    isSoundHat={isSoundHat}
-                    onItemClick={onItemClick}
-                  />
-                </div>
-              )
-            })}
+            {isLoading
+              ? Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="w-[calc(25%-9px)] shrink-0">
+                    <SkeletonSquareCard />
+                  </div>
+                ))
+              : collections.slice(0, 6).map((item) => {
+                  const isLimited = item.cssTag === 'limited' || item.cssTag === 'limited-unique'
+                  const isLimitedUnique = item.cssTag === 'limited-unique'
+                  const isSoundHat = SOUND_HAT_IDS.includes(item.id)
+                  return (
+                    <div key={item.id} className="w-[calc(25%-9px)] shrink-0">
+                      <CollectionItemCard
+                        item={item}
+                        isLimited={isLimited}
+                        isLimitedUnique={isLimitedUnique}
+                        isSoundHat={isSoundHat}
+                        onItemClick={onItemClick}
+                      />
+                    </div>
+                  )
+                })}
           </div>
         </div>
       </div>
       {!isLoading && collections.length === 0 && (
-        <div className="col-span-5 text-neutral-500 text-sm py-4 text-center">
+        <div className="col-span-5 text-[var(--color-text-muted)] text-sm py-4 text-center">
           No collectibles found.
         </div>
       )}
@@ -147,14 +147,14 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
 
   return (
     <div
-      className="group relative aspect-square bg-neutral-900 border border-neutral-800 rounded-xl overflow-hidden cursor-pointer transition-all hover:border-neutral-600 hover:shadow-lg isolate"
+      className="group relative aspect-square bg-[var(--color-surface-strong)] border border-[var(--color-border)] rounded-xl overflow-hidden cursor-pointer transition-all hover:border-[var(--color-border-strong)] hover:shadow-lg isolate"
       onClick={() => onItemClick({ id: item.id, name: item.name, imageUrl: item.imageUrl })}
     >
       <div
         className="absolute inset-0 bg-cover bg-center blur-xl opacity-10 scale-110"
         style={{ backgroundImage: `url(${item.imageUrl})` }}
       />
-      <div className="w-full h-full p-4 flex items-center justify-center bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-neutral-800/30 to-transparent backdrop-blur-sm">
+      <div className="w-full h-full p-4 flex items-center justify-center bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-[var(--color-surface-hover)] to-transparent backdrop-blur-sm">
         <img
           src={item.imageUrl}
           alt={item.name}
@@ -235,7 +235,7 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
         />
         <TruncatedTextWithTooltip
           text={item.name}
-          className="relative p-3 text-xs font-semibold text-white line-clamp-2 leading-tight"
+          className="relative p-3 text-xs font-semibold text-[var(--color-text-primary)] line-clamp-2 leading-tight"
         />
       </div>
     </div>

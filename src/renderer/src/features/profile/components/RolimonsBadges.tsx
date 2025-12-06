@@ -62,7 +62,7 @@ export const RolimonsBadges: React.FC<RolimonsBadgesProps> = ({ userId }) => {
 
   return (
     <div className={`relative z-10 px-6 pb-4 ${topPadding}`}>
-      <div className="flex flex-wrap items-center gap-2 max-w-[50%]">
+      <div className="flex flex-wrap items-center gap-2">
         {sortedRolimonsBadges.map(({ badgeKey, acquiredTime }) => {
           const badgeMeta = ROLIMONS_BADGES[badgeKey]
           if (!badgeMeta) return null
@@ -78,8 +78,10 @@ export const RolimonsBadges: React.FC<RolimonsBadgesProps> = ({ userId }) => {
               <TooltipContent>
                 <div className="space-y-1">
                   <div className="font-semibold">{badgeMeta.label}</div>
-                  <div className="text-xs text-neutral-300">{badgeMeta.description}</div>
-                  <div className="text-xs text-neutral-400 pt-1 border-t border-neutral-700">
+                  <div className="text-xs text-[var(--color-text-secondary)]">
+                    {badgeMeta.description}
+                  </div>
+                  <div className="text-xs text-[var(--color-text-muted)] pt-1 border-t border-[var(--color-border-subtle)]">
                     Earned {new Date(acquiredTime * 1000).toLocaleDateString()}
                   </div>
                 </div>

@@ -9,17 +9,28 @@ import {
   avatarApi,
   inventoryApi,
   catalogApi,
+  catalogDatabaseApi,
   gamesApi,
   groupsApi,
   systemApi,
   pinApi,
   installApi,
   netlogApi,
+  catalogDbApi,
   authApi,
   rolimonsApi,
   transactionsApi,
-  updaterApi
+  updaterApi,
+  newsApi
 } from './api'
+
+// Platform info
+const platform = {
+  isMac: process.platform === 'darwin',
+  isWindows: process.platform === 'win32',
+  isLinux: process.platform === 'linux',
+  platform: process.platform
+}
 
 // Merge all domain APIs into a single api object
 const api = {
@@ -27,6 +38,8 @@ const api = {
   ...authApi,
   ...avatarApi,
   ...catalogApi,
+  ...catalogDatabaseApi,
+  ...catalogDbApi,
   ...friendsApi,
   ...gamesApi,
   ...groupsApi,
@@ -38,7 +51,8 @@ const api = {
   ...rolimonsApi,
   ...netlogApi,
   ...transactionsApi,
-  ...updaterApi
+  ...updaterApi,
+  ...newsApi
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to
@@ -48,6 +62,7 @@ if (process.contextIsolated) {
   try {
     contextBridge.exposeInMainWorld('electron', electronAPI)
     contextBridge.exposeInMainWorld('api', api)
+    contextBridge.exposeInMainWorld('platform', platform)
   } catch (error) {
     console.error(error)
   }
@@ -56,4 +71,6 @@ if (process.contextIsolated) {
   window.electron = electronAPI
   // @ts-ignore (define in dts)
   window.api = api
+  // @ts-ignore (define in dts)
+  window.platform = platform
 }

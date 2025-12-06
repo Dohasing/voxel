@@ -38,10 +38,13 @@ const AddFriendModal: React.FC<AddFriendModalProps> = ({
     setError(null)
 
     try {
-      // First, get the user ID from username
       const userData = await window.api.getUserByUsername(username.trim())
+      if (!userData) {
+        setError('User not found.')
+        setIsLoading(false)
+        return
+      }
 
-      // Then send the friend request
       const result = await window.api.sendFriendRequest(selectedAccount.cookie, userData.id)
 
       if (result.success) {

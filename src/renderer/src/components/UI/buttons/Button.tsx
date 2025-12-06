@@ -3,22 +3,25 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '../../../lib/utils'
 
 const buttonVariants = cva(
-  'pressable inline-flex items-center justify-center whitespace-nowrap rounded-lg text-sm font-bold ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 cursor-pointer',
+  'pressable inline-flex items-center justify-center whitespace-nowrap rounded-lg text-sm font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-app-bg)] disabled:pointer-events-none disabled:opacity-50 cursor-pointer',
   {
     variants: {
       variant: {
         default:
           'bg-[var(--accent-color)] text-[var(--accent-color-foreground)] hover:bg-[var(--accent-color-muted)] shadow-sm shadow-[0_5px_15px_var(--accent-color-shadow)] border border-[var(--accent-color-border)]',
-        destructive: 'bg-red-500 text-white hover:bg-red-600',
+        destructive:
+          'bg-red-500 text-white hover:bg-red-600 border border-red-500/60 focus-visible:ring-red-400/50',
         outline:
-          'border border-neutral-800 bg-transparent hover:bg-neutral-900 hover:text-white text-neutral-400',
-        secondary: 'bg-neutral-800 text-white hover:bg-neutral-700',
-        ghost: 'hover:bg-neutral-900 hover:text-white text-neutral-400',
-        link: 'text-primary underline-offset-4 hover:underline',
+          'border border-[var(--color-border)] bg-[var(--color-surface)] hover:bg-[var(--color-surface-hover)] text-[var(--color-text-primary)]',
+        secondary:
+          'bg-[var(--color-surface-muted)] text-[var(--color-text-primary)] hover:bg-[var(--color-surface-hover)] border border-[var(--color-border)]',
+        ghost:
+          'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-hover)]',
+        link: 'text-[var(--accent-color)] underline-offset-4 hover:underline',
         filter:
-          'text-neutral-400 hover:text-white hover:bg-neutral-900 data-[state=open]:bg-neutral-800 data-[state=open]:text-white',
+          'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-hover)] data-[state=open]:bg-[var(--color-surface-hover)] data-[state=open]:text-[var(--color-text-primary)]',
         filterItem:
-          'text-neutral-300 hover:text-white hover:bg-neutral-800 justify-start !font-medium',
+          'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-hover)] justify-start !font-medium',
         filterItemActive:
           'bg-[var(--accent-color)] text-[var(--accent-color-foreground)] justify-start !font-bold'
       },

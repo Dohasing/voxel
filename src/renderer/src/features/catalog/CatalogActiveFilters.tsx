@@ -54,13 +54,13 @@ export const CatalogActiveFilters = ({
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
-            className="flex items-center gap-1.5 pl-2.5 pr-1 py-1 rounded-full bg-[rgba(var(--accent-color-rgb),0.1)] border border-[rgba(var(--accent-color-rgb),0.2)] text-xs text-[var(--accent-color)] group"
+            className="flex items-center gap-1.5 pl-2.5 pr-1 py-1 rounded-full bg-[var(--color-surface-hover)] border border-[var(--color-border-strong)] text-xs text-[var(--color-text-primary)] group shadow-[0_8px_24px_rgba(0,0,0,0.18)]"
           >
-            <span className="font-medium">{filter.label}:</span>
-            <span>{filter.value}</span>
+            <span className="font-medium text-[var(--color-text-secondary)]">{filter.label}:</span>
+            <span className="text-[var(--color-text-primary)]">{filter.value}</span>
             <button
               onClick={() => onClearFilter(filter.key)}
-              className="p-0.5 rounded-full hover:bg-[rgba(var(--accent-color-rgb),0.2)] transition-colors ml-0.5"
+              className="p-0.5 rounded-full text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-muted)] transition-colors ml-0.5"
             >
               <X size={12} />
             </button>

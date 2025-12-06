@@ -16,7 +16,8 @@ interface CreditsDialogProps {
 const credits: Credit[] = [
   { name: 'Nick', role: 'Lead Developer', link: 'https://github.com/crowsyndrome' },
   { name: 'fiveman1', role: '.rbxm / .rbxmx Parsers', link: 'https://github.com/fiveman1' },
-  { name: 'Avis', role: 'Item sales count list', link: 'https://discord.gg/CX7m5RMwRr' }
+  { name: 'Avis', role: 'Item sales count list', link: 'https://discord.gg/CX7m5RMwRr' },
+  { name: 'Julia (RoSeal)', role: 'Roblox-BAT module', link: 'https://github.com/juliaoverflow' }
 ]
 
 const CreditsDialog: React.FC<CreditsDialogProps> = ({ isOpen, onClose }) => {

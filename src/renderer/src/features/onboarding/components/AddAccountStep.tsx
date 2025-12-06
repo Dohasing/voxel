@@ -39,9 +39,6 @@ const AddAccountStep: React.FC<AddAccountStepProps> = ({ onAccountAdded, onSkip 
   const [quickLoginStatus, setQuickLoginStatus] = useState('')
   const pollingRef = React.useRef<NodeJS.Timeout | null>(null)
 
-  // Browser login state
-  const [browserLoginStatus, setBrowserLoginStatus] = useState<'idle' | 'waiting' | 'error'>('idle')
-
   React.useEffect(() => {
     if (method === 'quick' && !quickLoginData && !isLoading) {
       generateCode()
@@ -102,12 +99,14 @@ const AddAccountStep: React.FC<AddAccountStepProps> = ({ onAccountAdded, onSkip 
 
   const handleQuickLoginComplete = async (code: string, privateKey: string) => {
     setIsLoading(true)
+    setError(null)
     try {
       const cookieValue = await window.api.completeQuickLogin(code, privateKey)
       await addAccountFromCookie(cookieValue)
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to complete quick login:', err)
-      setError('Failed to complete login')
+      setError(err?.message || 'Failed to complete login')
+    } finally {
       setIsLoading(false)
     }
   }
@@ -115,14 +114,12 @@ const AddAccountStep: React.FC<AddAccountStepProps> = ({ onAccountAdded, onSkip 
   const handleBrowserLogin = async () => {
     if (isLoading) return
     setError(null)
-    setBrowserLoginStatus('waiting')
     setIsLoading(true)
     try {
       const cookieValue = await requestRobloxLoginCookie()
       await addAccountFromCookie(cookieValue)
     } catch (err: any) {
       console.error('Browser login failed:', err)
-      setBrowserLoginStatus('error')
       if (err.message === 'LOGIN_WINDOW_CLOSED') {
         setError('Login window closed before completing sign-in.')
       } else {
@@ -225,7 +222,10 @@ const AddAccountStep: React.FC<AddAccountStepProps> = ({ onAccountAdded, onSkip 
           { id: 'browser', label: 'Login', icon: LogIn }
         ]}
         activeTab={method}
-        onTabChange={(tabId) => setMethod(tabId as 'quick' | 'cookie' | 'browser')}
+        onTabChange={(tabId) => {
+          setError(null)
+          setMethod(tabId as 'quick' | 'cookie' | 'browser')
+        }}
         layoutId="onboardingAddAccountTab"
         tabClassName="pressable"
         className="-mx-6"

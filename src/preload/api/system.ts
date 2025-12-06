@@ -47,6 +47,7 @@ export const systemApi = {
   getLogContent: (filename: string) => invoke('get-log-content', z.string(), filename),
   deleteLog: (filename: string) => invoke('delete-log', z.boolean(), filename),
   deleteAllLogs: () => invoke('delete-all-logs', z.boolean()),
+  openLogFile: (filename: string) => invoke('open-log-file', z.boolean(), filename),
 
   // Updates
   getDeployHistory: () => invoke('get-deploy-history', S.deployHistorySchema),
@@ -108,4 +109,13 @@ export const netlogApi = {
   getNetLogPath: () => invoke('net-log:get-log-path', z.string()),
   stopNetLog: () => invoke('net-log:stop', S.netLogStopResponseSchema),
   startNetLog: () => invoke('net-log:start', S.netLogStartResponseSchema)
+}
+
+// ============================================================================
+// CATALOG DATABASE API
+// ============================================================================
+
+export const catalogDbApi = {
+  getStatus: () => invoke('get-catalog-db-status', S.catalogDbStatusSchema),
+  download: () => invoke('download-catalog-db', S.catalogDbDownloadResultSchema)
 }

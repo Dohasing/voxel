@@ -10,7 +10,6 @@ import {
 } from '@shared/ipc-schemas/user'
 import { avatarHeadshotSchema } from '@shared/ipc-schemas/avatar'
 
-// We need a specific schema for the users endpoint used in hydrateUsers
 const hydrateUserSchema = z.object({
   id: z.number(),
   name: z.string(),
@@ -80,7 +79,6 @@ export class RobloxFriendService {
     let presences: Record<number, any> = {}
     let userDetails: Record<number, any> = {}
 
-    // Fetch CSRF only if we need presence data
     let csrfToken = ''
     if (!options?.skipPresence) {
       try {
@@ -90,7 +88,6 @@ export class RobloxFriendService {
       }
     }
 
-    // Avatars
     const avatarChunks = chunk(userIds, 50)
     for (const ids of avatarChunks) {
       try {
@@ -109,7 +106,6 @@ export class RobloxFriendService {
       }
     }
 
-    // User Details
     const userChunks = chunk(userIds, 50)
     for (const ids of userChunks) {
       try {
@@ -146,7 +142,6 @@ export class RobloxFriendService {
       }
     }
 
-    // Presences
     if (csrfToken && !options?.skipPresence) {
       const presenceChunks = chunk(userIds, 50)
       for (const ids of presenceChunks) {
@@ -222,7 +217,7 @@ export class RobloxFriendService {
     return {
       data,
       nextCursor: friendsResult.NextCursor ?? null,
-      previousCursor: null // The friends/find endpoint doesn't support previous cursor
+      previousCursor: null
     }
   }
 
@@ -230,11 +225,10 @@ export class RobloxFriendService {
    * Get ALL friends (fetches all pages) - use for FriendsTab where all friends are needed
    */
   static async getFriends(cookie: string, userId: number, _forceRefresh: boolean = false) {
-    // 1. Fetch Friends List with Pagination
     let friends: z.infer<typeof friendSchema>[] = []
     let cursor: string | null = null
     const limit = 50
-    const maxPages = 100 // Limit to 5000 friends to prevent infinite loops
+    const maxPages = 100
     let pagesFetched = 0
 
     try {
@@ -262,7 +256,6 @@ export class RobloxFriendService {
       }
     } catch (error) {
       console.error('Error fetching friends pages:', error)
-      // Continue with whatever friends we managed to fetch
     }
 
     if (friends.length === 0) return []
@@ -275,8 +268,8 @@ export class RobloxFriendService {
       const u = userDetails[f.id]
       return {
         id: f.id.toString(),
-        username: u ? u.name : f.name || '', // Prefer hydrated name
-        displayName: u ? u.displayName : f.displayName || f.name || '', // Prefer hydrated displayName
+        username: u ? u.name : f.name || '',
+        displayName: u ? u.displayName : f.displayName || f.name || '',
         userId: f.id.toString(),
         avatarUrl: avatars[f.id] || '',
         userPresenceType: p ? p.userPresenceType : f.isOnline ? 1 : 0,
@@ -343,7 +336,6 @@ export class RobloxFriendService {
     if (cursor) queryParams.append('cursor', cursor)
 
     const result = await request(followersResponseSchema, {
-      // Followings response is identical to Followers structure
       url: `https://friends.roblox.com/v1/users/${userId}/followings?${queryParams.toString()}`,
       cookie
     })
@@ -400,7 +392,6 @@ export class RobloxFriendService {
 
   static async getFriendRequests(cookie: string) {
     const result = await request(z.object({ data: z.array(z.any()) }), {
-      // using any for now as structure is complex, but we could refine
       url: `https://friends.roblox.com/v1/my/friends/requests?sortOrder=Desc&limit=100`,
       cookie
     })
@@ -440,7 +431,6 @@ export class RobloxFriendService {
   static async acceptFriendRequest(cookie: string, requesterUserId: number) {
     const url = `https://friends.roblox.com/v1/users/${requesterUserId}/accept-friend-request`
     await requestWithCsrf(z.object({ success: z.boolean().optional() }), {
-      // Sometimes returns {} or success: true
       method: 'POST',
       url,
       cookie

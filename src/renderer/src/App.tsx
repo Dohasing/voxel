@@ -1,6 +1,7 @@
 /// <reference path="./window.d.ts" />
 import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react'
 import { AnimatePresence } from 'framer-motion'
+import { Search } from 'lucide-react'
 import { Account, AccountStatus, JoinMethod } from './types'
 import { mapPresenceToStatus, isActiveStatus } from './utils/statusUtils'
 import JoinModal from './components/Modals/JoinModal'
@@ -26,6 +27,7 @@ import LogsTab from './features/system/LogsView'
 import SettingsTab from './features/settings/index'
 import AvatarTab from './features/avatar/index'
 import InstallTab from './features/install/index'
+import NewsTab from './features/news/index'
 import CommandPalette from './features/command-palette/index'
 import PinLockScreen from './components/UI/security/PinLockScreen'
 import { OnboardingScreen, useHasCompletedOnboarding } from './features/onboarding'
@@ -43,16 +45,24 @@ import {
 } from './hooks/queries'
 import { useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '../../shared/queryKeys'
+import {
+  getVisibleSidebarTabs,
+  sanitizeSidebarHidden,
+  sanitizeSidebarOrder,
+  SIDEBAR_TAB_IDS
+} from '@shared/navigation'
 import { useCommandPaletteStore } from './features/command-palette/stores/useCommandPaletteStore'
+import { initCatalogSearchIndex } from './features/command-palette/hooks'
 import { useFriendPresenceNotifications } from './hooks/useFriendPresenceNotifications'
 import {
   useNotificationTrayStore,
   useNotifyServerLocation
 } from './features/system/stores/useNotificationTrayStore'
+import { useTheme } from './theme/ThemeProvider'
 
-// UI Store selectors
 import {
   useActiveTab,
+  useSetActiveTab,
   useModals,
   useOpenModal,
   useCloseModal,
@@ -72,7 +82,6 @@ import {
   useSetAppUnlocked
 } from './stores/useUIStore'
 
-// Selection Store selectors
 import { useSelectedIds, useSetSelectedIds } from './stores/useSelectionStore'
 
 interface JoinConfig {
@@ -80,34 +89,34 @@ interface JoinConfig {
   target: string
 }
 
+const isMac = window.platform?.isMac ?? false
+
 const App: React.FC = () => {
   const { showNotification } = useNotification()
   const queryClient = useQueryClient()
 
-  // Onboarding state
+  useEffect(() => {
+    initCatalogSearchIndex()
+  }, [])
+
   const hasCompletedOnboarding = useHasCompletedOnboarding()
 
-  // App lock state
   const isAppUnlocked = useAppUnlocked()
   const setAppUnlocked = useSetAppUnlocked()
 
-  // Handle PIN unlock - invalidate accounts to refetch with cookies
   const handlePinUnlock = useCallback(() => {
     setAppUnlocked(true)
-    // Invalidate accounts query to refetch with decrypted cookies
     queryClient.invalidateQueries({ queryKey: queryKeys.accounts.list() })
   }, [queryClient, setAppUnlocked])
 
-  // Notification tray for server location notifications
   const notifyServerLocation = useNotifyServerLocation()
   const addTrayNotification = useNotificationTrayStore((state) => state.addNotification)
 
-  // Command Palette
   const openCommandPalette = useCommandPaletteStore((s) => s.open)
   const isCommandPaletteOpen = useCommandPaletteStore((s) => s.isOpen)
 
-  // UI Store - using individual selectors for optimized re-renders
   const activeTab = useActiveTab()
+  const setActiveTabState = useSetActiveTab()
   const modals = useModals()
   const openModal = useOpenModal()
   const closeModal = useCloseModal()
@@ -124,21 +133,29 @@ const App: React.FC = () => {
   const availableInstallations = useAvailableInstallations()
   const setAvailableInstallations = useSetAvailableInstallations()
 
-  // Selection Store - using individual selectors
   const selectedIds = useSelectedIds()
   const setSelectedIds = useSetSelectedIds()
 
-  // React Query hooks for accounts and settings (single source of truth)
   const { accounts, isLoading: isLoadingAccounts, setAccounts, addAccount } = useAccountsManager()
   const { settings, isLoading: isLoadingSettings, updateSettings } = useSettingsManager()
 
-  // Auto-refresh account statuses
+  const sidebarTabOrder = useMemo(
+    () => sanitizeSidebarOrder(settings.sidebarTabOrder),
+    [settings.sidebarTabOrder]
+  )
+  const sidebarHiddenTabs = useMemo(
+    () => sanitizeSidebarHidden(settings.sidebarHiddenTabs),
+    [settings.sidebarHiddenTabs]
+  )
+  const visibleSidebarTabs = useMemo(
+    () => getVisibleSidebarTabs(sidebarTabOrder, sidebarHiddenTabs),
+    [sidebarHiddenTabs, sidebarTabOrder]
+  )
+
   useAccountStatusPolling()
 
-  // Track if initial selection has been applied
   const initialSelectionApplied = useRef(false)
 
-  // Apply primary account selection on initial load
   useEffect(() => {
     if (!isLoadingAccounts && !isLoadingSettings && !initialSelectionApplied.current) {
       if (settings.primaryAccountId && accounts.some((a) => a.id === settings.primaryAccountId)) {
@@ -148,23 +165,19 @@ const App: React.FC = () => {
     }
   }, [isLoadingAccounts, isLoadingSettings, accounts, settings.primaryAccountId, setSelectedIds])
 
-  // Sidebar Resize
   const sidebarRef = useRef<HTMLElement>(null)
   const { sidebarWidth, isResizing, setIsResizing } = useSidebarResize()
 
-  // Filter State
   const filterRef = useRef<HTMLDivElement>(null)
 
-  // Close filter dropdown when clicking outside
   useClickOutside(filterRef, () => {})
 
-  // Close menu when clicking outside or scrolling
   useEffect(() => {
     if (!activeMenu) return
 
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement
-      if (!target.closest('[data-menu-id]') && !target.closest('.fixed.z-\\[100\\]')) {
+      if (!target.closest('[data-menu-id]') && !target.closest('.fixed.z-\\[1100\\]')) {
         setActiveMenu(null)
       }
     }
@@ -180,7 +193,6 @@ const App: React.FC = () => {
     }
   }, [activeMenu])
 
-  // Command Palette keyboard shortcut (Ctrl+K / Cmd+K)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
@@ -195,7 +207,6 @@ const App: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [openCommandPalette, isCommandPaletteOpen])
 
-  // Derived state for friends
   const selectedAccountId = useMemo(() => {
     return selectedIds.size === 1 ? Array.from(selectedIds)[0] : null
   }, [selectedIds])
@@ -204,27 +215,36 @@ const App: React.FC = () => {
     return accounts.find((a) => a.id === selectedAccountId) || null
   }, [accounts, selectedAccountId])
 
-  // Friends data for presence notifications
   const { data: friendsData = [] } = useFriends(selectedAccount)
 
-  // Track friend status changes and send notifications
   useFriendPresenceNotifications(friendsData, !!selectedAccount, selectedAccount?.id)
 
-  // Command Palette profile viewing state (for viewing by userId without an account object)
-  const [commandPaletteProfileUserId, setCommandPaletteProfileUserId] = useState<string | null>(
-    null
-  )
+  const [quickProfileUserId, setQuickProfileUserId] = useState<string | null>(null)
 
-  // Command Palette accessory viewing state
+  const { setTheme } = useTheme()
+
+  useEffect(() => {
+    setTheme(settings.theme ?? 'system')
+  }, [settings.theme, setTheme])
+
+  useEffect(() => {
+    const isSidebarTab = SIDEBAR_TAB_IDS.includes(activeTab)
+    if (isSidebarTab && !visibleSidebarTabs.includes(activeTab)) {
+      const fallbackTab = visibleSidebarTabs[0]
+      if (fallbackTab) {
+        setActiveTabState(fallbackTab)
+      }
+    }
+  }, [activeTab, setActiveTabState, visibleSidebarTabs])
+
   const [commandPaletteAccessory, setCommandPaletteAccessory] = useState<{
     id: number
     name: string
     imageUrl?: string
   } | null>(null)
 
-  // Command Palette handlers
   const handleCommandPaletteViewProfile = useCallback((userId: string) => {
-    setCommandPaletteProfileUserId(userId)
+    setQuickProfileUserId(userId)
   }, [])
 
   const handleCommandPaletteViewAccessory = useCallback(
@@ -234,7 +254,8 @@ const App: React.FC = () => {
     []
   )
 
-  // Handlers
+  const multiInstanceAllowed = !isMac && settings.allowMultipleInstances
+
   const performLaunch = async (config: JoinConfig, installPath?: string) => {
     closeModal('join')
 
@@ -244,9 +265,13 @@ const App: React.FC = () => {
       return
     }
 
-    // Multi-instance check
-    if (accountsToLaunch.length > 1 && !settings.allowMultipleInstances) {
-      showNotification('Multi-instance launching is disabled in Settings.', 'warning')
+    if (accountsToLaunch.length > 1 && !multiInstanceAllowed) {
+      showNotification(
+        isMac
+          ? 'Multi-instance is disabled on macOS.'
+          : 'Multi-instance launching is disabled in Settings.',
+        'warning'
+      )
       return
     }
 
@@ -265,6 +290,10 @@ const App: React.FC = () => {
         }
       } else if (config.method === JoinMethod.Username) {
         const targetUser = await window.api.getUserByUsername(config.target)
+        if (!targetUser) {
+          showNotification(`User "${config.target}" not found`, 'error')
+          return
+        }
         const cookie = accountsToLaunch[0].cookie
         if (!cookie) {
           showNotification('First selected account needs a valid cookie to check presence', 'error')
@@ -308,7 +337,6 @@ const App: React.FC = () => {
         if (!account.cookie) continue
 
         try {
-          // Get logs before launch to compare later
           const logsBeforeLaunch = notifyServerLocation ? await window.api.getLogs() : []
           const logTimestampBefore =
             logsBeforeLaunch.length > 0 ? logsBeforeLaunch[0].lastModified : 0
@@ -322,9 +350,7 @@ const App: React.FC = () => {
           )
           showNotification(`Launched successfully for ${account.displayName}`, 'success')
 
-          // Fetch server location from Roblox logs if enabled
           if (notifyServerLocation) {
-            // Poll for new log with server IP (Roblox writes to logs after connecting)
             const pollForServerLocation = async () => {
               const maxAttempts = 15 // Poll for up to 30 seconds
               const pollInterval = 2000 // 2 seconds between polls
@@ -334,7 +360,6 @@ const App: React.FC = () => {
 
                 try {
                   const currentLogs = await window.api.getLogs()
-                  // Find a log that was created/modified after launch and has server IP
                   const newLog = currentLogs.find(
                     (log) =>
                       log.lastModified > logTimestampBefore &&
@@ -345,7 +370,6 @@ const App: React.FC = () => {
                   if (newLog?.serverIp) {
                     const region = await window.api.getRegionFromAddress(newLog.serverIp)
                     if (region && region !== 'Unknown' && region !== 'Failed') {
-                      // Add to notification tray
                       addTrayNotification({
                         type: 'info',
                         title: 'Server Location',
@@ -356,7 +380,6 @@ const App: React.FC = () => {
                         }
                       })
 
-                      // Send desktop push notification
                       if ('Notification' in window) {
                         if (Notification.permission === 'granted') {
                           new Notification('Server Location', {
@@ -375,7 +398,7 @@ const App: React.FC = () => {
                         }
                       }
                     }
-                    return // Success, stop polling
+                    return
                   }
                 } catch (pollError) {
                   console.warn('Error polling for server location:', pollError)
@@ -384,7 +407,6 @@ const App: React.FC = () => {
               console.warn('Timed out waiting for server location from logs')
             }
 
-            // Start polling in background (don't await to avoid blocking next account launch)
             pollForServerLocation()
           }
 
@@ -400,7 +422,6 @@ const App: React.FC = () => {
     }
   }
 
-  // Get installations from Zustand store
   const installations = useInstallations()
 
   const handleLaunch = (config: JoinConfig) => {
@@ -414,14 +435,11 @@ const App: React.FC = () => {
       return
     }
 
-    // Use installations from Zustand store
     if (installations.length > 0) {
-      // Auto-select if only 1 installation
       if (installations.length === 1) {
         performLaunch(config, installations[0].path)
         return
       }
-      // Show modal if 2+ installations
       setAvailableInstallations(installations)
       setPendingLaunchConfig(config)
       closeModal('join')
@@ -562,10 +580,9 @@ const App: React.FC = () => {
     }
   }
 
-  // Show loading state while initial data loads
   if (isLoadingAccounts || isLoadingSettings) {
     return (
-      <div className="flex h-screen w-full bg-black text-neutral-300 font-sans">
+      <div className="flex h-screen w-full bg-[var(--color-app-bg)] text-[var(--color-text-muted)] font-sans">
         <LoadingSpinnerFullPage label="Loading..." />
       </div>
     )
@@ -574,7 +591,7 @@ const App: React.FC = () => {
   return (
     <div
       id="app-container"
-      className="flex h-screen w-full bg-black text-neutral-300 font-sans overflow-hidden overflow-x-hidden selection:bg-neutral-800 selection:text-white"
+      className="flex h-screen w-full bg-[var(--color-app-bg)] text-[var(--color-text-muted)] font-sans overflow-hidden overflow-x-hidden selection:bg-[var(--accent-color-soft)] selection:text-[var(--color-text-primary)]"
     >
       {/* Sidebar */}
       <Sidebar
@@ -584,31 +601,48 @@ const App: React.FC = () => {
         onResizeStart={() => setIsResizing(true)}
         selectedAccount={selectedAccount}
         showProfileCard={settings.showSidebarProfileCard}
+        tabOrder={sidebarTabOrder}
+        hiddenTabs={sidebarHiddenTabs}
       />
 
       {/* Main Content Wrapper */}
-      <main className="flex-1 flex flex-col min-w-0 bg-neutral-950 h-full relative overflow-hidden">
+      <main className="flex-1 flex flex-col min-w-0 bg-[var(--color-surface)] h-full relative overflow-hidden text-[var(--color-text-secondary)]">
         {/* Title Bar spacer */}
         <div
-          className="h-[45px] bg-neutral-950 flex-shrink-0 w-full border-b border-neutral-800 flex items-center justify-end"
-          style={{ WebkitAppRegion: 'drag', paddingRight: '128px' } as React.CSSProperties}
+          className="h-[45px] bg-[var(--color-surface)] flex-shrink-0 w-full border-b border-[var(--color-border)] flex items-center justify-end"
+          style={
+            {
+              WebkitAppRegion: 'drag',
+              paddingRight: isMac ? '16px' : '138px'
+            } as React.CSSProperties
+          }
         >
-          {/* Notification Bell */}
+          {/* Search and Notification Bell */}
           <div
-            className="flex items-center mr-2"
+            className="flex items-center mr-2 gap-2"
             style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
           >
-            <NotificationTray />
-            <div className="w-px h-5 bg-neutral-700 mx-2" />
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                openCommandPalette()
+              }}
+              className="relative p-2 rounded-md transition-all hover:bg-[var(--color-surface-hover)] text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
+              title="Search (Ctrl+K)"
+            >
+              <Search className="h-4 w-4" />
+            </button>
+            <NotificationTray onOpenUserProfile={handleCommandPaletteViewProfile} />
+            {!isMac && <div className="w-px h-5 bg-[var(--color-border)] mx-2" />}
           </div>
         </div>
         {/* Tab panels - conditional rendering for performance */}
-        <div className="flex-1 flex flex-col h-full min-h-0 w-full relative">
+        <div className="flex-1 flex flex-col h-full min-h-0 w-full relative tab-transition-surface">
           {activeTab === 'Accounts' && (
             <AccountsTab
               accounts={accounts}
               onAccountsChange={setAccounts}
-              allowMultipleInstances={settings.allowMultipleInstances}
+              allowMultipleInstances={multiInstanceAllowed}
             />
           )}
 
@@ -616,10 +650,12 @@ const App: React.FC = () => {
             (selectedAccount ? (
               <ProfileTab account={selectedAccount} />
             ) : (
-              <div className="flex flex-col items-center justify-center h-full text-neutral-500">
+              <div className="flex flex-col items-center justify-center h-full text-[var(--color-text-muted)]">
                 <p>Select an account to view profile</p>
               </div>
             ))}
+
+          {activeTab === 'News' && <NewsTab />}
 
           {activeTab === 'Friends' && (
             <FriendsTab selectedAccount={selectedAccount} onFriendJoin={handleFriendJoin} />
@@ -632,7 +668,7 @@ const App: React.FC = () => {
           {activeTab === 'Catalog' && (
             <CatalogTab
               onItemSelect={handleCommandPaletteViewAccessory}
-              onCreatorSelect={(creatorId) => setCommandPaletteProfileUserId(String(creatorId))}
+              onCreatorSelect={(creatorId) => setQuickProfileUserId(String(creatorId))}
               cookie={accounts.find((a) => a.cookie)?.cookie}
             />
           )}
@@ -709,9 +745,9 @@ const App: React.FC = () => {
       />
 
       <UniversalProfileModal
-        isOpen={!!commandPaletteProfileUserId}
-        onClose={() => setCommandPaletteProfileUserId(null)}
-        userId={commandPaletteProfileUserId}
+        isOpen={!!quickProfileUserId}
+        onClose={() => setQuickProfileUserId(null)}
+        userId={quickProfileUserId}
         selectedAccount={accounts.find((a) => a.cookie) || null}
         initialData={{}}
       />
@@ -750,6 +786,7 @@ const App: React.FC = () => {
         onEditNote={handleEditNote}
         onReauth={handleReauth}
         onRemove={handleIndividualRemove}
+        onClose={() => setActiveMenu(null)}
       />
 
       {/* Snackbar Notifications (replaces NotificationProvider) */}

@@ -2,6 +2,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect } from 'react'
 import { queryKeys } from '../../../../../shared/queryKeys'
 import { Settings, DEFAULT_ACCENT_COLOR } from '@renderer/types'
+import {
+  DEFAULT_SIDEBAR_TAB_ORDER,
+  sanitizeSidebarHidden,
+  sanitizeSidebarOrder
+} from '@shared/navigation'
 import { applyAccentColor } from '@renderer/utils/themeUtils'
 import { initializeFonts, CustomFont } from '@renderer/utils/fontUtils'
 
@@ -14,7 +19,10 @@ const DEFAULT_SETTINGS: Settings = {
   allowMultipleInstances: false,
   defaultInstallationPath: null,
   accentColor: DEFAULT_ACCENT_COLOR,
+  theme: 'system',
   showSidebarProfileCard: true,
+  sidebarTabOrder: DEFAULT_SIDEBAR_TAB_ORDER,
+  sidebarHiddenTabs: [],
   pinCode: null
 }
 
@@ -33,7 +41,10 @@ export function useSettings() {
         ...DEFAULT_SETTINGS,
         ...data,
         accentColor: data?.accentColor || DEFAULT_ACCENT_COLOR,
-        showSidebarProfileCard: data?.showSidebarProfileCard ?? true
+        theme: (data?.theme as Settings['theme']) || 'system',
+        showSidebarProfileCard: data?.showSidebarProfileCard ?? true,
+        sidebarTabOrder: sanitizeSidebarOrder(data?.sidebarTabOrder),
+        sidebarHiddenTabs: sanitizeSidebarHidden(data?.sidebarHiddenTabs)
       }
     },
     staleTime: Infinity // Settings are managed locally

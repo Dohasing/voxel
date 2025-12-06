@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { BinaryType } from '../../renderer/src/types'
+import { LOCKED_SIDEBAR_TABS, SIDEBAR_TAB_IDS } from '../navigation'
 
 // ============================================================================
 // UPDATE & INSTALL SCHEMAS
@@ -43,7 +44,7 @@ export type RobloxInstallation = RobloxInstallationType
 export const detectedInstallationSchema = z.object({
   path: z.string(),
   version: z.string(),
-  binaryType: z.enum(['WindowsPlayer', 'WindowsStudio']),
+  binaryType: z.enum(['WindowsPlayer', 'WindowsStudio', 'MacPlayer', 'MacStudio']),
   exePath: z.string()
 })
 
@@ -58,6 +59,13 @@ export type DetectedInstallation = z.infer<typeof detectedInstallationSchema>
 const nullableIdentifierSchema = z.union([z.string().min(1), z.null()])
 const optionalPathSchema = z.union([z.string().min(1), z.null()]).optional()
 const accentColorSchema = z.string().regex(/^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/)
+const sidebarTabIdEnum = z.enum(SIDEBAR_TAB_IDS)
+const themePreferenceSchema = z.enum(['system', 'dark', 'light'])
+const sidebarHiddenTabsSchema = z
+  .array(sidebarTabIdEnum)
+  .refine((tabs) => tabs.every((tab) => !LOCKED_SIDEBAR_TABS.includes(tab)), {
+    message: 'Locked tabs cannot be hidden'
+  })
 const pinCodeSchema = z.union([
   z.literal('SET'),
   z
@@ -72,7 +80,10 @@ export const settingsSchema = z.object({
   allowMultipleInstances: z.boolean(),
   defaultInstallationPath: optionalPathSchema,
   accentColor: accentColorSchema,
+  theme: themePreferenceSchema,
   showSidebarProfileCard: z.boolean(),
+  sidebarTabOrder: z.array(sidebarTabIdEnum),
+  sidebarHiddenTabs: sidebarHiddenTabsSchema,
   pinCode: pinCodeSchema
 })
 
@@ -81,7 +92,10 @@ export const settingsPatchSchema = z.object({
   allowMultipleInstances: z.boolean().optional(),
   defaultInstallationPath: optionalPathSchema,
   accentColor: accentColorSchema.optional(),
+  theme: themePreferenceSchema.optional(),
   showSidebarProfileCard: z.boolean().optional(),
+  sidebarTabOrder: z.array(sidebarTabIdEnum).optional(),
+  sidebarHiddenTabs: sidebarHiddenTabsSchema.optional(),
   pinCode: pinCodeSchema.optional()
 })
 
@@ -160,3 +174,22 @@ export const pinLockoutStatusSchema = z.object({
 export type PinVerifyResult = z.infer<typeof pinVerifyResultSchema>
 export type PinSetResult = z.infer<typeof pinSetResultSchema>
 export type PinLockoutStatus = z.infer<typeof pinLockoutStatusSchema>
+
+// ============================================================================
+// CATALOG DATABASE SCHEMAS
+// ============================================================================
+
+export const catalogDbStatusSchema = z.object({
+  exists: z.boolean(),
+  downloading: z.boolean(),
+  error: z.string().nullable(),
+  path: z.string()
+})
+
+export const catalogDbDownloadResultSchema = z.object({
+  success: z.boolean(),
+  error: z.string().optional()
+})
+
+export type CatalogDbStatus = z.infer<typeof catalogDbStatusSchema>
+export type CatalogDbDownloadResult = z.infer<typeof catalogDbDownloadResultSchema>

@@ -1,6 +1,18 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react'
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Shirt, Package, History, Copy, Box, ArrowLeft, Loader2 } from 'lucide-react'
+import {
+  Shirt,
+  Package,
+  Copy,
+  Box,
+  ArrowLeft,
+  Loader2,
+  Sparkles,
+  TrendingUp,
+  Flame,
+  Star,
+  Music
+} from 'lucide-react'
 import { createPortal } from 'react-dom'
 import { Account } from '@renderer/types'
 import UserListModal from '@renderer/components/Modals/UserListModal'
@@ -14,16 +26,16 @@ import {
   DialogClose,
   DialogBody
 } from '@renderer/components/UI/dialogs/Dialog'
-import Skeleton from '@renderer/components/UI/display/Skeleton'
 import { SkeletonSquareGrid } from '@renderer/components/UI/display/SkeletonGrid'
 import { EmptyState } from '@renderer/components/UI/feedback/EmptyState'
+import { Tooltip, TooltipTrigger, TooltipContent } from '@renderer/components/UI/display/Tooltip'
 import {
   useUserGroups,
   useUserCollections,
-  useUserRobloxBadges as useRobloxBadges,
   useUserExperienceBadges as useExperienceBadges,
   useUserWearing as useUserWearingItems,
-  usePastUsernames
+  useUserProfilePlatform,
+  useUserRobloxBadges
 } from '@renderer/hooks/queries'
 import { useUserProfileOutfits } from './hooks/useUserProfileOutfits'
 import { useProfileData } from './hooks/useProfileData'
@@ -37,6 +49,83 @@ import { CollectionsSection } from './components/CollectionsSection'
 import { BadgesSection } from './components/BadgesSection'
 import { ExpandedAvatarModal } from './components/ExpandedAvatarModal'
 import { TruncatedTextWithTooltip } from './components/TruncatedTextWithTooltip'
+import { QuickActionsBar } from './components/QuickActionsBar'
+import { useRolimonsItem } from '@renderer/hooks/queries'
+
+const SOUND_HAT_IDS = [24114402, 305888394, 24112667, 33070696]
+
+const ItemTagBadges: React.FC<{ assetId: number }> = ({ assetId }) => {
+  const rolimonsItem = useRolimonsItem(assetId)
+  const isLimited = !!rolimonsItem
+  const isSoundHat = SOUND_HAT_IDS.includes(assetId)
+
+  if (!isLimited && !isSoundHat) return null
+
+  return (
+    <div className="absolute flex flex-col gap-1.5 z-20 top-2 left-2">
+      {isLimited && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="flex items-center justify-center w-7 h-7 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 backdrop-blur-md transition-all hover:scale-105 shadow-sm cursor-default">
+              <Sparkles size={13} strokeWidth={2.5} className="shrink-0" />
+            </div>
+          </TooltipTrigger>
+          <TooltipContent side="right" className="font-bold text-xs">
+            Limited
+          </TooltipContent>
+        </Tooltip>
+      )}
+      {rolimonsItem?.isProjected && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="flex items-center justify-center w-7 h-7 rounded-full bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 backdrop-blur-md transition-all hover:scale-105 shadow-sm cursor-default">
+              <TrendingUp size={13} strokeWidth={2.5} className="shrink-0" />
+            </div>
+          </TooltipTrigger>
+          <TooltipContent side="right" className="font-bold text-xs">
+            Projected
+          </TooltipContent>
+        </Tooltip>
+      )}
+      {rolimonsItem?.isHyped && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="flex items-center justify-center w-7 h-7 rounded-full bg-orange-500/10 text-orange-400 border border-orange-500/20 hover:bg-orange-500/20 backdrop-blur-md transition-all hover:scale-105 shadow-sm cursor-default">
+              <Flame size={13} strokeWidth={2.5} className="shrink-0" />
+            </div>
+          </TooltipTrigger>
+          <TooltipContent side="right" className="font-bold text-xs">
+            Hyped
+          </TooltipContent>
+        </Tooltip>
+      )}
+      {rolimonsItem?.isRare && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="flex items-center justify-center w-7 h-7 rounded-full bg-pink-500/10 text-pink-400 border border-pink-500/20 hover:bg-pink-500/20 backdrop-blur-md transition-all hover:scale-105 shadow-sm cursor-default">
+              <Star size={13} strokeWidth={2.5} className="shrink-0" />
+            </div>
+          </TooltipTrigger>
+          <TooltipContent side="right" className="font-bold text-xs">
+            Rare
+          </TooltipContent>
+        </Tooltip>
+      )}
+      {isSoundHat && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="flex items-center justify-center w-7 h-7 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 hover:bg-cyan-500/20 backdrop-blur-md transition-all hover:scale-105 shadow-sm cursor-default">
+              <Music size={13} strokeWidth={2.5} className="shrink-0" />
+            </div>
+          </TooltipTrigger>
+          <TooltipContent side="right" className="font-bold text-xs">
+            Sound Hat
+          </TooltipContent>
+        </Tooltip>
+      )}
+    </div>
+  )
+}
 
 export interface ProfileViewProps {
   userId: string | number
@@ -77,7 +166,6 @@ const UserProfileView: React.FC<ProfileViewProps> = ({
 }) => {
   const [isWearingOpen, setIsWearingOpen] = useState(false)
   const [isOutfitsOpen, setIsOutfitsOpen] = useState(false)
-  const [isPastNamesOpen, setIsPastNamesOpen] = useState(false)
   const [selectedAccessory, setSelectedAccessory] = useState<{
     id: number
     name: string
@@ -109,17 +197,19 @@ const UserProfileView: React.FC<ProfileViewProps> = ({
 
   const userIdNum = typeof userId === 'string' ? parseInt(userId) : userId
 
-  // Use custom hooks for data fetching
   const { profile } = useProfileData({ userId: userIdNum, requestCookie, initialData })
-  const { sortedFriends, friendCount } = useFriendStatuses(userIdNum, requestCookie)
+  const { sortedFriends } = useFriendStatuses(userIdNum, requestCookie)
+  const { data: profilePlatform, isLoading: isLoadingProfilePlatform } = useUserProfilePlatform(
+    userIdNum,
+    requestCookie
+  )
 
-  // Additional data fetching hooks
   const { data: groups = [], isLoading: isLoadingGroups } = useUserGroups(userIdNum)
   const { data: collections = [], isLoading: isLoadingCollections } = useUserCollections(
     userIdNum,
     requestCookie
   )
-  const { data: robloxBadges = [], isLoading: isLoadingRobloxBadges } = useRobloxBadges(
+  const { data: robloxBadges = [], isLoading: isLoadingRobloxBadges } = useUserRobloxBadges(
     userIdNum,
     requestCookie
   )
@@ -137,16 +227,19 @@ const UserProfileView: React.FC<ProfileViewProps> = ({
     requestCookie,
     isOutfitsOpen
   )
-  const { data: pastUsernames = [], isLoading: pastNamesLoading } = usePastUsernames(
-    userIdNum,
-    requestCookie,
-    isPastNamesOpen
+
+  const pastUsernames = profilePlatform?.nameHistory ?? []
+  const profileWithGroupCount = useMemo(
+    () => ({
+      ...profile,
+      groupMemberCount: groups.length || profile.groupMemberCount || 0
+    }),
+    [profile, groups.length]
   )
 
   const loading =
     isLoadingGroups || isLoadingCollections || isLoadingRobloxBadges || isLoadingExperienceBadges
 
-  // Description handling
   const rawDescription = profile.notes?.trim() || ''
   const hasRawDescription = rawDescription.length > 0
 
@@ -182,16 +275,14 @@ const UserProfileView: React.FC<ProfileViewProps> = ({
 
   return (
     <div
-      className="relative flex flex-col w-full h-full bg-neutral-950 overflow-hidden font-sans"
+      className="relative flex flex-col w-full h-full bg-[var(--color-app-bg)] overflow-hidden font-sans"
       onContextMenu={handleContextMenu}
     >
-      {/* Main Scrollable Area */}
       <div className="flex-1 overflow-y-auto scrollbar-thin p-6">
         <div className="max-w-[1400px] mx-auto space-y-6">
-          {/* Profile Header */}
           <ProfileHeader
             userId={userIdNum}
-            profile={profile}
+            profile={profileWithGroupCount}
             cookie={requestCookie}
             showCloseButton={showCloseButton}
             onClose={onClose}
@@ -204,62 +295,27 @@ const UserProfileView: React.FC<ProfileViewProps> = ({
             rawDescription={rawDescription}
           />
 
-          {/* Main Grid Layout */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            {/* Left Column - Info & Stats (4 cols) */}
             <div className="lg:col-span-4 space-y-6">
-              {/* Quick Actions */}
-              <div className="bg-neutral-900/50 border border-neutral-800 rounded-xl p-5">
-                <h3 className="text-lg font-bold text-white mb-3">Quick Actions</h3>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    onClick={() => setIsWearingOpen(true)}
-                    className="pressable flex items-center gap-2.5 px-3 py-2.5 bg-neutral-800/60 hover:bg-neutral-800 border border-neutral-700/50 hover:border-neutral-600 rounded-lg text-sm text-neutral-300 hover:text-white transition-all group"
-                    aria-label="View currently wearing items"
-                  >
-                    <Shirt size={16} className="text-neutral-400 group-hover:text-neutral-300" />
-                    <span className="font-medium">Wearing</span>
-                  </button>
-                  <button
-                    onClick={() => setIsOutfitsOpen(true)}
-                    className="pressable flex items-center gap-2.5 px-3 py-2.5 bg-neutral-800/60 hover:bg-neutral-800 border border-neutral-700/50 hover:border-neutral-600 rounded-lg text-sm text-neutral-300 hover:text-white transition-all group"
-                    aria-label="View saved outfits"
-                  >
-                    <Package size={16} className="text-neutral-400 group-hover:text-neutral-300" />
-                    <span className="font-medium">Outfits</span>
-                  </button>
-                  <button
-                    onClick={() => setIsInventoryOpen(true)}
-                    className="pressable flex items-center gap-2.5 px-3 py-2.5 bg-neutral-800/60 hover:bg-neutral-800 border border-neutral-700/50 hover:border-neutral-600 rounded-lg text-sm text-neutral-300 hover:text-white transition-all group"
-                    aria-label="View inventory"
-                  >
-                    <Box size={16} className="text-neutral-400 group-hover:text-neutral-300" />
-                    <span className="font-medium">Inventory</span>
-                  </button>
-                  <button
-                    onClick={handleCopyUserId}
-                    className="pressable flex items-center gap-2.5 px-3 py-2.5 bg-neutral-800/60 hover:bg-neutral-800 border border-neutral-700/50 hover:border-neutral-600 rounded-lg text-sm text-neutral-300 hover:text-white transition-all group"
-                    aria-label="Copy user ID to clipboard"
-                  >
-                    <Copy size={16} className="text-neutral-400 group-hover:text-neutral-300" />
-                    <span className="font-medium">Copy ID</span>
-                  </button>
-                </div>
-              </div>
+              <QuickActionsBar
+                onWearingClick={() => setIsWearingOpen(true)}
+                onOutfitsClick={() => setIsOutfitsOpen(true)}
+                onInventoryClick={() => setIsInventoryOpen(true)}
+                onCopyIdClick={handleCopyUserId}
+              />
 
               <ProfileStats
-                profile={profile}
+                profile={profileWithGroupCount}
                 userId={userIdNum}
-                onPastNamesClick={() => setIsPastNamesOpen(true)}
+                pastUsernames={pastUsernames}
               />
             </div>
 
-            {/* Right Column - Actions & Content (8 cols) */}
             <div className="lg:col-span-8 space-y-6">
               <FriendsSection
                 friends={sortedFriends as any}
                 isLoading={loading}
-                friendCount={friendCount}
+                friendCount={profile.friendCount ?? sortedFriends.length}
                 onViewAll={() =>
                   setUserListModal({ isOpen: true, type: 'friends', title: 'Friends' })
                 }
@@ -269,7 +325,7 @@ const UserProfileView: React.FC<ProfileViewProps> = ({
               <GroupsSection
                 groups={groups}
                 isLoading={isLoadingGroups}
-                groupMemberCount={profile.groupMemberCount}
+                groupMemberCount={profileWithGroupCount.groupMemberCount}
                 onSelectGroup={(groupId) => setSelectedGroupId(groupId)}
               />
 
@@ -291,18 +347,17 @@ const UserProfileView: React.FC<ProfileViewProps> = ({
         </div>
       </div>
 
-      {/* Currently Wearing Dialog */}
       <Dialog isOpen={isWearingOpen} onClose={() => setIsWearingOpen(false)}>
-        <DialogContent className="max-w-3xl bg-neutral-950 border-neutral-800/60">
+        <DialogContent className="max-w-3xl bg-[var(--color-surface-strong)] border border-[var(--color-border)]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3 pl-0">
-              <div className="p-2 bg-neutral-900 rounded-lg">
-                <Shirt size={20} className="text-neutral-300" />
+              <div className="p-2 bg-[var(--color-surface-hover)] rounded-lg border border-[var(--color-border-subtle)]">
+                <Shirt size={20} className="text-[var(--color-text-secondary)]" />
               </div>
               <div className="flex flex-col">
                 <span>Currently Wearing</span>
                 {!wearingLoading && wearingItems.length > 0 && (
-                  <span className="text-xs font-normal text-neutral-500">
+                  <span className="text-xs font-normal text-[var(--color-text-muted)]">
                     {wearingItems.length} items equipped
                   </span>
                 )}
@@ -341,6 +396,7 @@ const UserProfileView: React.FC<ProfileViewProps> = ({
                         })
                       }
                     >
+                      <ItemTagBadges assetId={item.id} />
                       <div className="w-full h-full p-3 flex items-center justify-center">
                         <img
                           src={item.imageUrl}
@@ -379,18 +435,17 @@ const UserProfileView: React.FC<ProfileViewProps> = ({
         </DialogContent>
       </Dialog>
 
-      {/* View Outfits Dialog */}
       <Dialog isOpen={isOutfitsOpen} onClose={() => setIsOutfitsOpen(false)}>
-        <DialogContent className="max-w-3xl bg-neutral-950 border-neutral-800/60">
+        <DialogContent className="max-w-3xl bg-[var(--color-surface-strong)] border border-[var(--color-border)]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3 pl-0">
-              <div className="p-2 bg-neutral-900 rounded-lg">
-                <Package size={20} className="text-neutral-300" />
+              <div className="p-2 bg-[var(--color-surface-hover)] rounded-lg border border-[var(--color-border-subtle)]">
+                <Package size={20} className="text-[var(--color-text-secondary)]" />
               </div>
               <div className="flex flex-col">
                 <span>Outfits</span>
                 {!outfitsLoading && outfits.length > 0 && (
-                  <span className="text-xs font-normal text-neutral-500">
+                  <span className="text-xs font-normal text-[var(--color-text-muted)]">
                     {outfits.length} saved outfits
                   </span>
                 )}
@@ -420,7 +475,7 @@ const UserProfileView: React.FC<ProfileViewProps> = ({
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ duration: 0.2, delay: Math.min(index * 0.02, 0.3) }}
-                      className="group relative aspect-square bg-neutral-900/80 border border-neutral-800/60 rounded-xl overflow-hidden cursor-pointer transition-all duration-200 hover:border-neutral-600 hover:bg-neutral-800/80 hover:shadow-lg"
+                      className="group relative aspect-square bg-[var(--color-surface-strong)] border border-[var(--color-border)] rounded-xl overflow-hidden cursor-pointer transition-all duration-200 hover:border-[var(--color-border-strong)] hover:bg-[var(--color-surface-hover)] hover:shadow-lg"
                       onClick={async () => {
                         setSelectedOutfit({
                           id: outfit.id,
@@ -458,14 +513,6 @@ const UserProfileView: React.FC<ProfileViewProps> = ({
                         }
                       }}
                     >
-                      {/* Type badge - always visible */}
-                      {outfit.type && (
-                        <div className="absolute top-2 left-2 z-30">
-                          <span className="px-1.5 py-0.5 text-[10px] font-medium bg-neutral-800 text-neutral-400 rounded border border-neutral-700">
-                            {outfit.type}
-                          </span>
-                        </div>
-                      )}
                       <div className="w-full h-full p-3 flex items-center justify-center">
                         {outfit.imageUrl ? (
                           <img
@@ -511,7 +558,6 @@ const UserProfileView: React.FC<ProfileViewProps> = ({
         </DialogContent>
       </Dialog>
 
-      {/* Outfit Details Dialog */}
       <Dialog
         isOpen={!!selectedOutfit}
         onClose={() => {
@@ -519,7 +565,7 @@ const UserProfileView: React.FC<ProfileViewProps> = ({
           setOutfitDetails(null)
         }}
       >
-        <DialogContent className="max-w-3xl bg-neutral-950 border-neutral-800/60">
+        <DialogContent className="max-w-3xl bg-[var(--color-surface-strong)] border border-[var(--color-border)]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3 pl-0">
               <button
@@ -527,14 +573,14 @@ const UserProfileView: React.FC<ProfileViewProps> = ({
                   setSelectedOutfit(null)
                   setOutfitDetails(null)
                 }}
-                className="p-2 bg-neutral-900 rounded-lg hover:bg-neutral-800 transition-colors"
+                className="p-2 bg-[var(--color-surface-hover)] rounded-lg border border-[var(--color-border-subtle)] hover:bg-[var(--color-surface-muted)] transition-colors"
               >
-                <ArrowLeft size={20} className="text-neutral-300" />
+                <ArrowLeft size={20} className="text-[var(--color-text-secondary)]" />
               </button>
               <div className="flex flex-col">
                 <span className="line-clamp-1">{selectedOutfit?.name || 'Outfit'}</span>
                 {!outfitDetailsLoading && outfitDetails && (
-                  <span className="text-xs font-normal text-neutral-500">
+                  <span className="text-xs font-normal text-[var(--color-text-muted)]">
                     {outfitDetails.assets.length} items
                   </span>
                 )}
@@ -546,7 +592,7 @@ const UserProfileView: React.FC<ProfileViewProps> = ({
             <AnimatePresence mode="wait">
               {outfitDetailsLoading ? (
                 <div className="flex items-center justify-center py-16">
-                  <Loader2 size={24} className="text-neutral-500 animate-spin" />
+                  <Loader2 size={24} className="text-[var(--color-text-muted)] animate-spin" />
                 </div>
               ) : outfitDetails && outfitDetails.assets.length > 0 ? (
                 <motion.div
@@ -563,7 +609,7 @@ const UserProfileView: React.FC<ProfileViewProps> = ({
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ duration: 0.2, delay: Math.min(index * 0.02, 0.3) }}
-                      className="group relative aspect-square bg-neutral-900/80 border border-neutral-800/60 rounded-xl overflow-hidden cursor-pointer transition-all duration-200 hover:border-neutral-600 hover:bg-neutral-800/80 hover:shadow-lg"
+                      className="group relative aspect-square bg-[var(--color-surface-strong)] border border-[var(--color-border)] rounded-xl overflow-hidden cursor-pointer transition-all duration-200 hover:border-[var(--color-border-strong)] hover:bg-[var(--color-surface-hover)] hover:shadow-lg"
                       onClick={() =>
                         setSelectedAccessory({
                           id: item.id,
@@ -572,6 +618,7 @@ const UserProfileView: React.FC<ProfileViewProps> = ({
                         })
                       }
                     >
+                      <ItemTagBadges assetId={item.id} />
                       <div className="w-full h-full p-3 flex items-center justify-center">
                         <img
                           src={item.imageUrl}
@@ -609,46 +656,6 @@ const UserProfileView: React.FC<ProfileViewProps> = ({
         </DialogContent>
       </Dialog>
 
-      {/* Past Usernames Dialog */}
-      <Dialog isOpen={isPastNamesOpen} onClose={() => setIsPastNamesOpen(false)}>
-        <DialogContent className="max-w-md bg-neutral-950/95 backdrop-blur-xl border-neutral-800">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-3 pl-0">
-              <div className="p-2 bg-neutral-900 rounded-lg">
-                <History size={20} className="text-neutral-300" />
-              </div>
-              Past Usernames
-            </DialogTitle>
-            <DialogClose />
-          </DialogHeader>
-          <DialogBody>
-            <div className="p-1">
-              {pastNamesLoading ? (
-                <div className="space-y-2">
-                  <Skeleton className="h-8 w-full rounded-md" />
-                  <Skeleton className="h-8 w-3/4 rounded-md" />
-                  <Skeleton className="h-8 w-1/2 rounded-md" />
-                </div>
-              ) : pastUsernames.length > 0 ? (
-                <div className="flex flex-wrap gap-2">
-                  {pastUsernames.map((name, i) => (
-                    <div
-                      key={i}
-                      className="px-3 py-1.5 bg-neutral-900 border border-neutral-800 rounded-lg text-sm text-neutral-300 font-medium hover:border-neutral-700 hover:text-white transition-colors cursor-default"
-                    >
-                      {name}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center text-neutral-500 py-8">No past usernames found.</div>
-              )}
-            </div>
-          </DialogBody>
-        </DialogContent>
-      </Dialog>
-
-      {/* User List Modal */}
       <UserListModal
         isOpen={userListModal.isOpen}
         onClose={() => setUserListModal((prev) => ({ ...prev, isOpen: false }))}
@@ -662,7 +669,6 @@ const UserProfileView: React.FC<ProfileViewProps> = ({
         }}
       />
 
-      {/* Accessory Details Modal */}
       <AccessoryDetailsModal
         isOpen={!!selectedAccessory}
         onClose={() => setSelectedAccessory(null)}
@@ -683,7 +689,6 @@ const UserProfileView: React.FC<ProfileViewProps> = ({
         }
       />
 
-      {/* Expanded 3D Avatar Modal */}
       <ExpandedAvatarModal
         isOpen={isAvatarExpanded}
         onClose={() => setIsAvatarExpanded(false)}
@@ -692,7 +697,6 @@ const UserProfileView: React.FC<ProfileViewProps> = ({
         cookie={requestCookie}
       />
 
-      {/* Context Menu */}
       {contextMenu &&
         createPortal(
           <AnimatePresence>
@@ -702,7 +706,7 @@ const UserProfileView: React.FC<ProfileViewProps> = ({
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 8, scale: 0.95 }}
               transition={{ duration: 0.15, ease: 'easeOut' }}
-              className="fixed z-[100] w-52 bg-neutral-900 border border-neutral-800 rounded-xl shadow-2xl overflow-hidden"
+              className="fixed z-[100] w-52 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl shadow-2xl overflow-hidden"
               style={{
                 top: Math.min(contextMenu.y, window.innerHeight - 220),
                 left: Math.min(contextMenu.x, window.innerWidth - 220)
@@ -714,7 +718,7 @@ const UserProfileView: React.FC<ProfileViewProps> = ({
                     setIsWearingOpen(true)
                     setContextMenu(null)
                   }}
-                  className="pressable w-full text-left px-3 py-2.5 text-sm text-neutral-300 hover:bg-neutral-800 hover:text-white flex items-center gap-2.5 rounded-lg transition-colors"
+                  className="pressable w-full text-left px-3 py-2.5 text-sm text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text-primary)] flex items-center gap-2.5 rounded-lg transition-colors"
                 >
                   <Shirt size={16} />
                   <span className="font-medium">Currently Wearing</span>
@@ -724,7 +728,7 @@ const UserProfileView: React.FC<ProfileViewProps> = ({
                     setIsOutfitsOpen(true)
                     setContextMenu(null)
                   }}
-                  className="pressable w-full text-left px-3 py-2.5 text-sm text-neutral-300 hover:bg-neutral-800 hover:text-white flex items-center gap-2.5 rounded-lg transition-colors"
+                  className="pressable w-full text-left px-3 py-2.5 text-sm text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text-primary)] flex items-center gap-2.5 rounded-lg transition-colors"
                 >
                   <Package size={16} />
                   <span className="font-medium">View Outfits</span>
@@ -734,28 +738,29 @@ const UserProfileView: React.FC<ProfileViewProps> = ({
                     setIsInventoryOpen(true)
                     setContextMenu(null)
                   }}
-                  className="pressable w-full text-left px-3 py-2.5 text-sm text-neutral-300 hover:bg-neutral-800 hover:text-white flex items-center gap-2.5 rounded-lg transition-colors"
+                  className="pressable w-full text-left px-3 py-2.5 text-sm text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text-primary)] flex items-center gap-2.5 rounded-lg transition-colors"
                 >
                   <Box size={16} />
                   <span className="font-medium">View Inventory</span>
                 </button>
-                <div className="h-px bg-neutral-800 my-1" />
+                <div className="h-px bg-[var(--color-border)] my-1" />
                 <button
                   onClick={handleCopyUserId}
-                  className="pressable w-full text-left px-3 py-2.5 text-sm text-neutral-300 hover:bg-neutral-800 hover:text-white flex items-center gap-2.5 rounded-lg transition-colors"
+                  className="pressable w-full text-left px-3 py-2.5 text-sm text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text-primary)] flex items-center gap-2.5 rounded-lg transition-colors"
                 >
                   <Copy size={16} />
                   <span className="font-medium">Copy User ID</span>
                 </button>
-                <div className="h-px bg-neutral-800 my-1" />
-                <div className="px-3 py-2 text-xs text-neutral-500 font-mono">{userId}</div>
+                <div className="h-px bg-[var(--color-border)] my-1" />
+                <div className="px-3 py-2 text-xs text-[var(--color-text-muted)] font-mono">
+                  {userId}
+                </div>
               </div>
             </motion.div>
           </AnimatePresence>,
           document.body
         )}
 
-      {/* Player Inventory Sheet */}
       <PlayerInventorySheet
         isOpen={isInventoryOpen}
         onClose={() => setIsInventoryOpen(false)}
@@ -764,7 +769,6 @@ const UserProfileView: React.FC<ProfileViewProps> = ({
         cookie={requestCookie}
       />
 
-      {/* Group Details Modal */}
       <GroupDetailsModal
         isOpen={!!selectedGroupId}
         onClose={() => setSelectedGroupId(null)}

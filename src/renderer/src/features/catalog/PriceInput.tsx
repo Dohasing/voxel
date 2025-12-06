@@ -60,16 +60,13 @@ export const PriceInput = ({ value, onChange, placeholder, label, className }: P
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
         className={cn(
-          'h-9 w-full rounded-lg border bg-neutral-900/50 backdrop-blur-sm',
-          'pl-10 pr-3 py-2',
-          'font-mono text-sm tracking-tight',
-          'ring-offset-neutral-950',
-          'transition-all duration-200',
-          'hover:bg-neutral-900 hover:border-neutral-700',
-          'focus:outline-none focus:ring-2 focus:ring-[rgba(var(--accent-color-rgb),0.3)] focus:border-[rgba(var(--accent-color-rgb),0.5)] focus:bg-neutral-900',
+          'h-9 w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-muted)]',
+          'pl-10 pr-3 py-2 font-mono text-sm tracking-tight text-[var(--color-text-primary)] transition-all duration-200',
+          'hover:bg-[var(--color-surface-hover)] hover:border-[var(--color-border-strong)]',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-app-bg)]',
           'disabled:cursor-not-allowed disabled:opacity-50',
-          isFocused ? 'border-[rgba(var(--accent-color-rgb),0.5)]' : 'border-neutral-800',
-          isPlaceholder ? 'text-neutral-600' : 'text-neutral-200'
+          isFocused && 'border-[var(--color-border-strong)]',
+          isPlaceholder && 'text-[var(--color-text-muted)]'
         )}
       />
     </div>

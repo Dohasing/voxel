@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Search, Users, Clock, ChevronRight, User, RefreshCw } from 'lucide-react'
 import { Virtuoso } from 'react-virtuoso'
@@ -67,12 +67,15 @@ const GroupItem = ({ group, role, thumbnail, isSelected, isPending, onClick }: G
     >
       <button
         onClick={onClick}
-        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-left group ${
+        className={`relative w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-left group overflow-hidden ${
           isSelected
-            ? 'bg-[rgba(var(--accent-color-rgb),0.15)] border border-[rgba(var(--accent-color-rgb),0.3)]'
-            : 'hover:bg-neutral-800/60 border border-transparent'
+            ? 'bg-[var(--color-surface-hover)] border border-[var(--color-border-strong)] shadow-[0_10px_30px_rgba(0,0,0,0.28)]'
+            : 'hover:bg-[var(--color-surface-hover)] border border-transparent'
         }`}
       >
+        {isSelected && (
+          <span className="absolute left-0 top-2 bottom-2 w-[3px] rounded-full bg-[var(--accent-color)]" />
+        )}
         <Avatar className="w-10 h-10 rounded-lg border border-neutral-700 shrink-0">
           <AvatarImage src={thumbnail} alt={group.name} />
           <AvatarFallback className="rounded-lg bg-neutral-800 text-neutral-400">
@@ -83,7 +86,9 @@ const GroupItem = ({ group, role, thumbnail, isSelected, isPending, onClick }: G
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5">
             <span
-              className={`font-medium truncate text-sm ${isSelected ? 'text-white' : 'text-neutral-200'}`}
+              className={`font-medium truncate text-sm ${
+                isSelected ? 'text-[var(--color-text-primary)]' : 'text-neutral-200'
+              }`}
             >
               {group.name}
             </span>
@@ -108,7 +113,11 @@ const GroupItem = ({ group, role, thumbnail, isSelected, isPending, onClick }: G
 
         <ChevronRight
           size={16}
-          className={`shrink-0 transition-colors ${isSelected ? 'text-[var(--accent-color)]' : 'text-neutral-600 group-hover:text-neutral-400'}`}
+          className={`shrink-0 transition-colors ${
+            isSelected
+              ? 'text-[var(--color-text-muted)]'
+              : 'text-neutral-600 group-hover:text-neutral-400'
+          }`}
         />
       </button>
     </motion.div>
@@ -127,6 +136,72 @@ const GroupsTab = ({ selectedAccount }: GroupsTabProps) => {
 
   // Profile modal state
   const [profileUserId, setProfileUserId] = useState<number | null>(null)
+
+  // Sidebar resize state
+  const [sidebarWidth, setSidebarWidth] = useState(320) // default to 80 * 4
+  const [isResizing, setIsResizing] = useState(false)
+  const sidebarWidthRef = useRef(sidebarWidth)
+  const MIN_SIDEBAR_WIDTH = 240
+  const MAX_SIDEBAR_WIDTH = 480
+  const sidebarRef = useRef<HTMLDivElement | null>(null)
+  const resizeOriginRef = useRef(0)
+
+  const clampWidth = (width: number) =>
+    Math.min(Math.max(width, MIN_SIDEBAR_WIDTH), MAX_SIDEBAR_WIDTH)
+
+  // Keep ref in sync
+  useEffect(() => {
+    sidebarWidthRef.current = sidebarWidth
+  }, [sidebarWidth])
+
+  // Restore saved width
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem('groupsSidebarWidth')
+      if (saved) {
+        const parsed = parseInt(saved, 10)
+        if (!Number.isNaN(parsed)) {
+          setSidebarWidth(clampWidth(parsed))
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load groups sidebar width', error)
+    }
+  }, [])
+
+  // Handle drag-to-resize lifecycle
+  useEffect(() => {
+    if (!isResizing) return
+
+    const handleMouseMove = (event: MouseEvent) => {
+      const newWidth = clampWidth(event.clientX - resizeOriginRef.current)
+      setSidebarWidth(newWidth)
+      sidebarWidthRef.current = newWidth
+    }
+
+    const handleMouseUp = () => {
+      setIsResizing(false)
+      document.body.style.cursor = ''
+      document.body.style.userSelect = ''
+      try {
+        window.localStorage.setItem('groupsSidebarWidth', sidebarWidthRef.current.toString())
+      } catch (error) {
+        console.error('Failed to save groups sidebar width', error)
+      }
+    }
+
+    document.body.style.cursor = 'col-resize'
+    document.body.style.userSelect = 'none'
+    document.addEventListener('mousemove', handleMouseMove)
+    document.addEventListener('mouseup', handleMouseUp)
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+      document.body.style.cursor = ''
+      document.body.style.userSelect = ''
+    }
+  }, [isResizing])
 
   // Get user ID
   const userId = selectedAccount?.userId ? parseInt(selectedAccount.userId) : null
@@ -236,7 +311,11 @@ const GroupsTab = ({ selectedAccount }: GroupsTabProps) => {
         ) : (
           <div className="flex-1 flex min-h-0">
             {/* Sidebar */}
-            <div className="w-80 border-r border-neutral-800 flex flex-col shrink-0 bg-neutral-900/30">
+            <div
+              ref={sidebarRef}
+              className={`relative border-r border-neutral-800 flex flex-col shrink-0 bg-neutral-900/30 ${!isResizing ? 'transition-[width] duration-150 ease-in-out' : ''}`}
+              style={{ width: `${sidebarWidth}px` }}
+            >
               {/* Sidebar Tabs */}
               <Tabs
                 tabs={[
@@ -341,6 +420,23 @@ const GroupsTab = ({ selectedAccount }: GroupsTabProps) => {
                     />
                   )}
                 </AnimatePresence>
+              </div>
+
+              {/* Resize Handle */}
+              <div
+                className="absolute top-0 right-0 h-full cursor-col-resize z-20"
+                style={{
+                  right: '-2px',
+                  width: '4px',
+                  background: isResizing ? 'rgb(115, 115, 115)' : 'transparent'
+                }}
+                onMouseDown={() => {
+                  const left = sidebarRef.current?.getBoundingClientRect().left ?? 0
+                  resizeOriginRef.current = left
+                  setIsResizing(true)
+                }}
+              >
+                <div className="absolute inset-0 hover:bg-neutral-600/50 transition-colors" />
               </div>
             </div>
 

@@ -16,7 +16,7 @@ const streamPipeline = promisify(pipeline)
 export interface DetectedInstallation {
   path: string
   version: string
-  binaryType: 'WindowsPlayer' | 'WindowsStudio'
+  binaryType: 'WindowsPlayer' | 'WindowsStudio' | 'MacPlayer' | 'MacStudio'
   exePath: string
 }
 
@@ -106,6 +106,37 @@ for (const [typ, obj] of Object.entries(BINARY_TYPES)) {
   }
 }
 
+const getClientSettingsPaths = (installPath: string): { dir: string; file: string } => {
+  if (process.platform === 'darwin') {
+    const dir = path.join(
+      os.homedir(),
+      'Library',
+      'Application Support',
+      'Roblox',
+      'ClientSettings'
+    )
+    return { dir, file: path.join(dir, 'ClientAppSettings.json') }
+  }
+
+  const dir = path.join(installPath, 'ClientSettings')
+  return { dir, file: path.join(dir, 'ClientAppSettings.json') }
+}
+
+const readMacBundleVersion = (bundlePath: string): string | null => {
+  try {
+    const infoPlistPath = path.join(bundlePath, 'Contents', 'Info.plist')
+    if (!fs.existsSync(infoPlistPath)) return null
+    const plist = fs.readFileSync(infoPlistPath, 'utf8')
+    const match = plist.match(
+      /<key>CFBundleShortVersionString<\/key>\s*<string>(?<ver>[^<]+)<\/string>/i
+    )
+    return match?.groups?.ver?.trim() || null
+  } catch (e) {
+    console.warn('[RobloxInstallService] Failed to read mac bundle version:', e)
+    return null
+  }
+}
+
 export class RobloxInstallService {
   private static historyCache: Record<string, string[]> | null = null
   private static lastHistoryFetch = 0
@@ -153,7 +184,6 @@ export class RobloxInstallService {
       }
     }
 
-    // Limit to 30
     for (const k in found) {
       found[k] = found[k].slice(0, 30)
     }
@@ -174,7 +204,6 @@ export class RobloxInstallService {
       const verTag = version.startsWith('version-') ? version : `version-${version}`
       const base = `${AWS_MIRROR}${blobDir}${verTag}-`
 
-      // Get manifest
       onProgress('Fetching manifest...', 0)
       let manifest = ''
       try {
@@ -184,7 +213,6 @@ export class RobloxInstallService {
         return false
       }
 
-      // Deduplicate packages
       const pkgsRaw = manifest
         .split(/\r?\n/)
         .map((l) => l.trim())
@@ -195,12 +223,10 @@ export class RobloxInstallService {
         ? EXTRACT_ROOTS['player']
         : EXTRACT_ROOTS['studio']
 
-      // Prepare output folder
       if (!fs.existsSync(installPath)) {
         fs.mkdirSync(installPath, { recursive: true })
       }
 
-      // Write AppSettings.xml
       const appSettingsPath = path.join(installPath, 'AppSettings.xml')
       const appSettingsContent = `<?xml version="1.0" encoding="UTF-8"?>
 <Settings>
@@ -212,18 +238,15 @@ export class RobloxInstallService {
 
       let completed = 0
       const total = pkgs.length
-      const concurrency = 8 // Adjust concurrency limit as needed
+      const concurrency = 8
 
-      // Helper for processing a single package
       const processPackage = async (pkg: string) => {
         const url = base + pkg
         const zipPath = path.join(installPath, pkg)
         const rootDir = roots[pkg]
 
-        // Download
         await this.downloadFile(url, zipPath)
 
-        // Extract if needed
         if (rootDir !== undefined) {
           const targetExtractPath = rootDir === '' ? installPath : path.join(installPath, rootDir)
           if (!fs.existsSync(targetExtractPath)) {
@@ -231,7 +254,6 @@ export class RobloxInstallService {
           }
           await this.extractZip(zipPath, targetExtractPath)
 
-          // Retry unlink logic
           let attempts = 0
           while (attempts < 3) {
             try {
@@ -242,19 +264,17 @@ export class RobloxInstallService {
               if (attempts >= 3) {
                 console.warn(`Failed to delete ${zipPath} after 3 attempts:`, e)
               } else {
-                await new Promise((r) => setTimeout(r, 500)) // wait 500ms
+                await new Promise((r) => setTimeout(r, 500))
               }
             }
           }
         }
       }
 
-      // Reset for the actual run
       completed = 0
       const queue = [...pkgs]
       const activeWorkers: Promise<void>[] = []
 
-      // If only one package, just process it
       if (queue.length === 1) {
         await processPackage(queue[0])
         onProgress('Complete', 100)
@@ -264,22 +284,17 @@ export class RobloxInstallService {
       while (queue.length > 0 || activeWorkers.length > 0) {
         while (queue.length > 0 && activeWorkers.length < concurrency) {
           const pkg = queue.shift()!
-          // Create a worker promise that processes the package
           const worker = (async () => {
             await processPackage(pkg)
             completed++
             onProgress('Installing...', Math.floor((completed / total) * 100), pkg)
           })()
 
-          // Add to active workers
           activeWorkers.push(worker)
 
-          // When this worker finishes, remove it from the active list
-          // Note: We need to catch errors inside the main loop or here
           worker
             .catch((err) => {
               console.error(`Failed to process package ${pkg}`, err)
-              // We should probably stop everything if one fails
               throw err
             })
             .finally(() => {
@@ -291,7 +306,6 @@ export class RobloxInstallService {
         }
 
         if (activeWorkers.length > 0) {
-          // Wait for at least one worker to finish before checking queue again
           await Promise.race(activeWorkers)
         }
       }
@@ -305,24 +319,51 @@ export class RobloxInstallService {
   }
 
   static async launch(installPath: string): Promise<void> {
-    const playerExe = path.join(installPath, 'RobloxPlayerBeta.exe')
-    const studioExe = path.join(installPath, 'RobloxStudioBeta.exe')
+    if (process.platform === 'darwin') {
+      let appPath = ''
 
-    let exePath = ''
-    if (fs.existsSync(playerExe)) {
-      exePath = playerExe
-    } else if (fs.existsSync(studioExe)) {
-      exePath = studioExe
+      if (installPath.endsWith('.app') && fs.existsSync(installPath)) {
+        appPath = installPath
+      } else {
+        const playerApp = path.join(installPath, 'RobloxPlayer.app')
+        const studioApp = path.join(installPath, 'RobloxStudio.app')
+
+        if (fs.existsSync(playerApp)) {
+          appPath = playerApp
+        } else if (fs.existsSync(studioApp)) {
+          appPath = studioApp
+        }
+      }
+
+      if (!appPath) {
+        throw new Error('Could not find Roblox app bundle in ' + installPath)
+      }
+
+      const child = spawn('open', [appPath], {
+        detached: true,
+        stdio: 'ignore'
+      })
+      child.unref()
     } else {
-      throw new Error('Could not find executable in ' + installPath)
-    }
+      const playerExe = path.join(installPath, 'RobloxPlayerBeta.exe')
+      const studioExe = path.join(installPath, 'RobloxStudioBeta.exe')
 
-    const child = spawn(exePath, [], {
-      detached: true,
-      cwd: installPath,
-      stdio: 'ignore'
-    })
-    child.unref()
+      let exePath = ''
+      if (fs.existsSync(playerExe)) {
+        exePath = playerExe
+      } else if (fs.existsSync(studioExe)) {
+        exePath = studioExe
+      } else {
+        throw new Error('Could not find executable in ' + installPath)
+      }
+
+      const child = spawn(exePath, [], {
+        detached: true,
+        cwd: installPath,
+        stdio: 'ignore'
+      })
+      child.unref()
+    }
   }
 
   static async uninstall(installPath: string): Promise<void> {
@@ -354,7 +395,7 @@ export class RobloxInstallService {
   }
 
   static async getFFlags(installPath: string): Promise<Record<string, any>> {
-    const clientSettingsPath = path.join(installPath, 'ClientSettings', 'ClientAppSettings.json')
+    const { file: clientSettingsPath } = getClientSettingsPaths(installPath)
     try {
       if (!fs.existsSync(clientSettingsPath)) {
         return {}
@@ -369,11 +410,9 @@ export class RobloxInstallService {
   }
 
   static async setFFlags(installPath: string, flags: Record<string, any>): Promise<void> {
-    // Validate before writing
     fflagsSchema.parse(flags)
 
-    const clientSettingsDir = path.join(installPath, 'ClientSettings')
-    const clientSettingsPath = path.join(clientSettingsDir, 'ClientAppSettings.json')
+    const { dir: clientSettingsDir, file: clientSettingsPath } = getClientSettingsPaths(installPath)
     try {
       if (!fs.existsSync(clientSettingsDir)) {
         await fs.promises.mkdir(clientSettingsDir, { recursive: true })
@@ -386,6 +425,13 @@ export class RobloxInstallService {
   }
 
   static async setActive(installPath: string): Promise<void> {
+    if (process.platform === 'darwin') {
+      console.log(
+        '[RobloxInstallService] setActive is not supported on macOS - using system Roblox'
+      )
+      return
+    }
+
     const playerExe = path.join(installPath, 'RobloxPlayerBeta.exe')
     if (!fs.existsSync(playerExe)) {
       throw new Error('RobloxPlayerBeta.exe not found in ' + installPath)
@@ -457,15 +503,11 @@ export class RobloxInstallService {
   }
 
   static async removeActive(): Promise<void> {
-    // We delete the registry keys we created
+    if (process.platform === 'darwin') {
+      return
+    }
+
     const keyPath = 'HKCU\\Software\\Classes\\roblox-player'
-
-    // verify if key exists first to avoid error? reg delete throws if not found.
-    // We'll just try to delete the whole key tree for roblox-player class we managed.
-    // NOTE: This might remove a "real" roblox installation's association if we overwrote it.
-    // But the user asked to "not have an active one".
-
-    // Command: reg delete HKCU\Software\Classes\roblox-player /f
 
     return new Promise<void>((resolve) => {
       const child = spawn('reg', ['delete', keyPath, '/f'], { stdio: 'ignore', windowsHide: true })
@@ -477,12 +519,16 @@ export class RobloxInstallService {
       })
       child.on('error', (err) => {
         console.error('Failed to delete registry key', err)
-        resolve() // Don't crash
+        resolve()
       })
     })
   }
 
   static async getActiveInstallPath(): Promise<string | null> {
+    if (process.platform === 'darwin') {
+      return null
+    }
+
     return new Promise((resolve) => {
       const child = spawn(
         'reg',
@@ -509,7 +555,6 @@ export class RobloxInstallService {
         if (match && match[1]) {
           const exePath = match[1].trim()
 
-          // Return directory containing the exe
           resolve(path.dirname(exePath))
         } else {
           resolve(null)
@@ -524,27 +569,46 @@ export class RobloxInstallService {
   }
 
   static async launchWithProtocol(installPath: string, protocolUrl: string): Promise<void> {
-    const playerExe = path.join(installPath, 'RobloxPlayerBeta.exe')
-    if (!fs.existsSync(playerExe)) {
-      throw new Error('RobloxPlayerBeta.exe not found in ' + installPath)
-    }
+    if (process.platform === 'darwin') {
+      const openArgs: string[] = []
 
-    // Spawn detached
-    const child = spawn(playerExe, [protocolUrl], {
-      detached: true,
-      cwd: installPath,
-      stdio: 'ignore'
-    })
-    child.unref()
+      // If a specific app path is provided, attempt to target it
+      if (installPath && fs.existsSync(installPath)) {
+        const appPath = installPath.endsWith('.app')
+          ? installPath
+          : path.join(installPath, 'Roblox.app')
+        if (fs.existsSync(appPath)) {
+          openArgs.push('-a', appPath)
+        }
+      }
+
+      openArgs.push(protocolUrl)
+
+      const child = spawn('open', openArgs, {
+        detached: true,
+        stdio: 'ignore'
+      })
+      child.unref()
+    } else {
+      const playerExe = path.join(installPath, 'RobloxPlayerBeta.exe')
+      if (!fs.existsSync(playerExe)) {
+        throw new Error('RobloxPlayerBeta.exe not found in ' + installPath)
+      }
+
+      const child = spawn(playerExe, [protocolUrl], {
+        detached: true,
+        cwd: installPath,
+        stdio: 'ignore'
+      })
+      child.unref()
+    }
   }
 
   private static downloadFile(url: string, dest: string): Promise<void> {
     return new Promise((resolve, reject) => {
-      // Prepare directory
       const dir = path.dirname(dest)
       if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
 
-      // Try to remove file if it exists
       if (fs.existsSync(dest)) {
         try {
           fs.unlinkSync(dest)
@@ -687,13 +751,35 @@ export class RobloxInstallService {
 
   /**
    * Detects default Roblox installations from the standard Roblox Versions directory
-   * (C:\Users\<user>\AppData\Local\Roblox\Versions\)
+   * Windows: C:\Users\<user>\AppData\Local\Roblox\Versions\
+   * macOS: /Applications/Roblox.app or ~/Applications/Roblox.app
    */
   static async detectDefaultInstallations(): Promise<DetectedInstallation[]> {
     const detected: DetectedInstallation[] = []
 
     try {
-      // Default Roblox install path
+      if (process.platform === 'darwin') {
+        const possiblePaths = [
+          '/Applications/Roblox.app',
+          path.join(os.homedir(), 'Applications', 'Roblox.app')
+        ]
+
+        for (const robloxAppPath of possiblePaths) {
+          if (fs.existsSync(robloxAppPath)) {
+            const version = readMacBundleVersion(robloxAppPath) || 'system'
+            const execPath = path.join(robloxAppPath, 'Contents', 'MacOS', 'RobloxPlayer')
+            detected.push({
+              path: robloxAppPath,
+              version,
+              binaryType: 'MacPlayer',
+              exePath: execPath
+            })
+            break
+          }
+        }
+        return detected
+      }
+
       const robloxVersionsPath = path.join(os.homedir(), 'AppData', 'Local', 'Roblox', 'Versions')
 
       if (!fs.existsSync(robloxVersionsPath)) {
@@ -703,7 +789,6 @@ export class RobloxInstallService {
       const entries = await fs.promises.readdir(robloxVersionsPath, { withFileTypes: true })
 
       for (const entry of entries) {
-        // Look for directories named version-<hash>
         if (!entry.isDirectory() || !entry.name.startsWith('version-')) {
           continue
         }
@@ -711,7 +796,6 @@ export class RobloxInstallService {
         const versionDir = path.join(robloxVersionsPath, entry.name)
         const versionHash = entry.name.replace('version-', '')
 
-        // Check for RobloxPlayerBeta.exe
         const playerExe = path.join(versionDir, 'RobloxPlayerBeta.exe')
         if (fs.existsSync(playerExe)) {
           detected.push({
@@ -723,7 +807,6 @@ export class RobloxInstallService {
           continue
         }
 
-        // Check for RobloxStudioBeta.exe
         const studioExe = path.join(versionDir, 'RobloxStudioBeta.exe')
         if (fs.existsSync(studioExe)) {
           detected.push({

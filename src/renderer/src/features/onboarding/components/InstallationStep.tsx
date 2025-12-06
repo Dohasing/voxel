@@ -153,7 +153,7 @@ const InstallationStep: React.FC<InstallationStepProps> = ({ onComplete, onSkip 
             onChange={(e) => setName(e.target.value)}
             placeholder="e.g. My Custom Version"
             disabled={isInstalling}
-            className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-[var(--accent-color)] focus:border-[var(--accent-color)] transition-all disabled:opacity-50"
+            className="w-full bg-[var(--color-surface-muted)] border border-[var(--color-border)] rounded-lg px-4 py-2.5 text-[var(--color-text-primary)] text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-app-bg)] transition-all disabled:opacity-50 placeholder:text-[var(--color-text-muted)] hover:border-[var(--color-border-strong)]"
           />
         </div>
 
@@ -196,7 +196,7 @@ const InstallationStep: React.FC<InstallationStepProps> = ({ onComplete, onSkip 
             value={version}
             onChange={setVersion}
             placeholder={availableVersions.length > 0 ? 'Latest' : 'Loading...'}
-            buttonClassName="bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-2.5 text-white text-sm"
+            buttonClassName="bg-[var(--color-surface-muted)] border border-[var(--color-border)] hover:border-[var(--color-border-strong)] rounded-lg px-4 py-2.5 text-[var(--color-text-primary)] text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-app-bg)]"
           />
         </div>
       </div>

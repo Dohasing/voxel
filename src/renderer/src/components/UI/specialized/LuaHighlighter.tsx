@@ -23,7 +23,7 @@ export const LuaHighlighter: React.FC<LuaHighlighterProps> = ({ code, className 
           fontSize: '12px',
           lineHeight: '1.5'
         }}
-        wrapLongLines={true}
+        wrapLongLines={false}
       >
         {code}
       </SyntaxHighlighter>

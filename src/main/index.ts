@@ -2,13 +2,15 @@
 import { app, shell, BrowserWindow, ipcMain, session } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
-import icon from '../../resources/build/icons/icon.ico?asset'
+import iconIco from '../../resources/build/icons/icon.ico?asset'
+import iconIcns from '../../resources/build/icons/icon.icns?asset'
 
 // Lazy imports - these will be loaded after window is shown
 let registerRobloxHandlers: typeof import('./modules/core/RobloxHandler').registerRobloxHandlers
 let registerStorageHandlers: typeof import('./modules/system/StorageController').registerStorageHandlers
 let registerLogsHandlers: typeof import('./modules/system/LogsController').registerLogsHandlers
 let registerUpdaterHandlers: typeof import('./modules/updater/UpdaterController').registerUpdaterHandlers
+let registerNewsHandlers: typeof import('./modules/news/NewsController').registerNewsHandlers
 let storageService: typeof import('./modules/system/StorageService').storageService
 let pinService: typeof import('./modules/system/PinService').pinService
 
@@ -31,15 +33,20 @@ function createWindow(): BrowserWindow {
     height: defaultHeight,
     show: false,
     autoHideMenuBar: true,
-    icon,
+    icon: process.platform === 'darwin' ? iconIcns : iconIco,
     backgroundColor: '#111111',
     titleBarStyle: 'hidden',
-    titleBarOverlay: {
-      color: '#00000000',
-      symbolColor: '#ffffff',
-      height: 45
-    },
-    ...(process.platform === 'linux' ? {} : {}),
+    ...(process.platform === 'darwin'
+      ? {
+          trafficLightPosition: { x: 16, y: 16 }
+        }
+      : {
+          titleBarOverlay: {
+            color: '#00000000',
+            symbolColor: '#ffffff',
+            height: 45
+          }
+        }),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false
@@ -97,6 +104,11 @@ app.whenReady().then(async () => {
   // Set app user model id for windows
   electronApp.setAppUserModelId('com.voxel.app')
 
+  // Set the app name for macOS menu bar
+  if (process.platform === 'darwin') {
+    app.setName('voxel')
+  }
+
   // Default open or close DevTools by F12 in development
   // and ignore CommandOrControl + R in production.
   // see https://github.com/alex8088/electron-toolkit/tree/master/packages/utils
@@ -135,6 +147,7 @@ app.whenReady().then(async () => {
       storageController,
       logsController,
       updaterController,
+      newsController,
       storageModule,
       pinModule
     ] = await Promise.all([
@@ -142,6 +155,7 @@ app.whenReady().then(async () => {
       import('./modules/system/StorageController'),
       import('./modules/system/LogsController'),
       import('./modules/updater/UpdaterController'),
+      import('./modules/news/NewsController'),
       import('./modules/system/StorageService'),
       import('./modules/system/PinService')
     ])
@@ -150,6 +164,7 @@ app.whenReady().then(async () => {
     registerStorageHandlers = storageController.registerStorageHandlers
     registerLogsHandlers = logsController.registerLogsHandlers
     registerUpdaterHandlers = updaterController.registerUpdaterHandlers
+    registerNewsHandlers = newsController.registerNewsHandlers
     storageService = storageModule.storageService
     pinService = pinModule.pinService
 
@@ -158,6 +173,7 @@ app.whenReady().then(async () => {
       registerStorageHandlers,
       registerLogsHandlers,
       registerUpdaterHandlers,
+      registerNewsHandlers,
       pinService
     }
   }
@@ -166,15 +182,16 @@ app.whenReady().then(async () => {
   const mainWindow = createWindow()
 
   // Load modules in parallel while window is loading
-  const modules = await loadModules()
+  const loadedModules = await loadModules()
 
   // Register handlers after modules are loaded
-  modules.registerRobloxHandlers()
-  modules.registerStorageHandlers()
-  modules.registerLogsHandlers()
+  loadedModules.registerRobloxHandlers()
+  loadedModules.registerStorageHandlers()
+  loadedModules.registerLogsHandlers()
+  loadedModules.registerNewsHandlers()
 
   // Initialize PIN service (loads persisted lockout state)
-  modules.pinService.initialize()
+  loadedModules.pinService.initialize()
 
   // Helper for CORS headers
   const UpsertKeyValue = (obj: Record<string, any>, keyToChange: string, value: any) => {

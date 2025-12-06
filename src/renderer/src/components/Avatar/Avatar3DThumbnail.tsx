@@ -7,12 +7,15 @@ import {
   useAvatar3DManifest,
   useAsset3DManifest
 } from '@renderer/features/avatar/hooks/useAvatar3DManifest'
+import { useAssetFires, AssetFireEffects, useAssetSparkles, AssetSparklesEffects } from './effects'
 
 interface Model3DViewerProps {
   /** User ID for avatar loading */
   userId?: string
   /** Asset ID for asset loading */
   assetId?: number | null
+  /** Asset type ID - if provided, avoids API calls for unsupported types like faces */
+  assetTypeId?: number | null
   /** Direct manifest URL (bypasses userId/assetId lookup) */
   manifestUrl?: string
   /** Explicit object type */
@@ -35,6 +38,10 @@ interface Model3DViewerProps {
   zoomLimits?: { min: number; max: number }
   /** Field of view */
   fov?: number
+  /** Enable fire effects from asset hierarchy (for accessories with Fire) */
+  enableFireEffects?: boolean
+  /** Enable sparkles effects from asset hierarchy (for accessories with Sparkles) */
+  enableSparklesEffects?: boolean
   /** Callbacks */
   onLoad?: () => void
   onError?: (error: string) => void
@@ -47,6 +54,7 @@ interface Model3DViewerProps {
 interface Avatar3DThumbnailProps {
   userId?: string
   assetId?: number | null
+  assetTypeId?: number | null
   manifestUrl?: string
   type?: ObjectType
   cookie?: string
@@ -95,10 +103,9 @@ const AnimatedRig: React.FC<AnimatedRigProps> = ({ children, isLoaded, objectTyp
   const outerRef = useRef<THREE.Group>(null!)
   const innerRef = useRef<THREE.Group>(null!)
   const targetY = objectType === 'avatar' ? -1.2 : 0
-  const startY = -8 // Start below the view
+  const startY = -8
   const animationCompleteRef = useRef(false)
 
-  // Reset animation state when isLoaded changes to false (new model loading)
   useEffect(() => {
     if (!isLoaded) {
       animationCompleteRef.current = false
@@ -108,22 +115,18 @@ const AnimatedRig: React.FC<AnimatedRigProps> = ({ children, isLoaded, objectTyp
   useFrame(() => {
     if (!outerRef.current || animationCompleteRef.current) return
 
-    // Smoothly lerp the outer group's Y position to target when loaded
     const target = isLoaded ? targetY : startY
     const currentY = outerRef.current.position.y
     const targetScale = isLoaded ? 1 : 0.9
     const currentScale = outerRef.current.scale.x
 
-    // Check if animation is essentially complete (within threshold)
     const yDiff = Math.abs(currentY - target)
     const scaleDiff = Math.abs(currentScale - targetScale)
 
     if (yDiff < 0.001 && scaleDiff < 0.001 && isLoaded) {
-      // Snap to final values and stop animating
       outerRef.current.position.y = target
       outerRef.current.scale.setScalar(targetScale)
       animationCompleteRef.current = true
-      // Final render with snapped values
       invalidate()
       return
     }
@@ -131,7 +134,6 @@ const AnimatedRig: React.FC<AnimatedRigProps> = ({ children, isLoaded, objectTyp
     outerRef.current.position.y = THREE.MathUtils.lerp(currentY, target, 0.08)
     outerRef.current.scale.setScalar(THREE.MathUtils.lerp(currentScale, targetScale, 0.08))
 
-    // Request next frame for demand mode
     invalidate()
   })
 
@@ -142,7 +144,6 @@ const AnimatedRig: React.FC<AnimatedRigProps> = ({ children, isLoaded, objectTyp
   )
 }
 
-// Component that loads and displays the 3D object inside R3F Canvas
 const Object3DLoader: React.FC<Object3DLoaderProps> = ({
   manifestUrl,
   objectName,
@@ -155,7 +156,6 @@ const Object3DLoader: React.FC<Object3DLoaderProps> = ({
   const objectRef = useRef<THREE.Object3D | null>(null)
   const { camera } = useThree()
 
-  // Use refs for callbacks to avoid re-running effect when callbacks change
   const onLoadRef = useRef(onLoad)
   const onErrorRef = useRef(onError)
   useEffect(() => {
@@ -163,7 +163,6 @@ const Object3DLoader: React.FC<Object3DLoaderProps> = ({
     onErrorRef.current = onError
   })
 
-  // Load the 3D object
   useEffect(() => {
     let cancelled = false
 
@@ -176,14 +175,12 @@ const Object3DLoader: React.FC<Object3DLoaderProps> = ({
           return
         }
 
-        // Clear existing object
         if (objectRef.current && groupRef.current) {
           groupRef.current.remove(objectRef.current)
           dispose3DObject(objectRef.current)
         }
 
         if (groupRef.current) {
-          // Center the object at the origin
           const box = new THREE.Box3().setFromObject(object)
           const center = new THREE.Vector3()
           box.getCenter(center)
@@ -192,7 +189,6 @@ const Object3DLoader: React.FC<Object3DLoaderProps> = ({
           groupRef.current.add(object)
           objectRef.current = object
 
-          // Fit camera to object (recalculate box after centering)
           const centeredBox = new THREE.Box3().setFromObject(object)
           const size = new THREE.Vector3()
           centeredBox.getSize(size)
@@ -255,7 +251,6 @@ const SceneControls: React.FC<SceneControlsProps> = ({
       maxPolarAngle={Math.PI / 1.5}
       dampingFactor={0.05}
       enableDamping
-      // Trigger re-render on control changes for demand frameloop
       onChange={() => invalidate()}
       mouseButtons={{
         LEFT: THREE.MOUSE.ROTATE,
@@ -266,13 +261,11 @@ const SceneControls: React.FC<SceneControlsProps> = ({
   )
 }
 
-// Component to handle WebGL context cleanup on unmount
 const ContextCleanup: React.FC = () => {
   const { gl, scene } = useThree()
 
   useEffect(() => {
     return () => {
-      // Dispose all objects in the scene
       scene.traverse((object) => {
         if (object instanceof THREE.Mesh) {
           object.geometry?.dispose()
@@ -287,7 +280,6 @@ const ContextCleanup: React.FC = () => {
           }
         }
       })
-      // Dispose the renderer
       gl.dispose()
     }
   }, [gl, scene])
@@ -295,7 +287,6 @@ const ContextCleanup: React.FC = () => {
   return null
 }
 
-// Scene lighting component
 const SceneLighting: React.FC<{ objectType: ObjectType }> = ({ objectType }) => {
   return (
     <>
@@ -319,6 +310,7 @@ const SceneLighting: React.FC<{ objectType: ObjectType }> = ({ objectType }) => 
 export const Model3DViewer: React.FC<Model3DViewerProps> = ({
   userId,
   assetId,
+  assetTypeId,
   manifestUrl,
   type: explicitType,
   cookie,
@@ -330,6 +322,8 @@ export const Model3DViewer: React.FC<Model3DViewerProps> = ({
   enablePan = false,
   zoomLimits,
   fov: customFov,
+  enableFireEffects = true,
+  enableSparklesEffects = true,
   onLoad,
   onError,
   onLoadStart,
@@ -339,30 +333,38 @@ export const Model3DViewer: React.FC<Model3DViewerProps> = ({
   const [isLoading, setIsLoading] = useState(true)
   const [_error, setError] = useState<string | null>(null)
 
-  // Determine the type and ID based on props
   const objectType: ObjectType = explicitType || (userId ? 'avatar' : 'asset')
   const objectId = userId || assetId
 
-  // Use TanStack Query for manifest fetching
+  const { data: fires = [] } = useAssetFires(
+    objectType === 'asset' ? assetId : null,
+    enableFireEffects && objectType === 'asset'
+  )
+  const hasFireEffects = fires.length > 0
+
+  const { data: sparkles = [] } = useAssetSparkles(
+    objectType === 'asset' ? assetId : null,
+    enableSparklesEffects && objectType === 'asset'
+  )
+  const hasSparklesEffects = sparkles.length > 0
+
   const { data: avatarManifestUrl, error: avatarError } = useAvatar3DManifest(
     !manifestUrl && objectType === 'avatar' && userId ? userId : undefined,
     cookie
   )
   const { data: assetManifestUrl, error: assetError } = useAsset3DManifest(
     !manifestUrl && objectType === 'asset' && assetId ? assetId : undefined,
-    cookie
+    cookie,
+    { assetTypeId }
   )
 
-  // Determine the effective manifest URL from props or query
   const effectiveManifestUrl = manifestUrl || avatarManifestUrl || assetManifestUrl
   const manifestError = avatarError || assetError
 
-  // Compute defaults based on type
   const effectiveZoomLimits =
     zoomLimits ?? (objectType === 'asset' ? { min: 1, max: 15 } : { min: 4, max: 26 })
   const effectiveCameraDistanceFactor = cameraDistanceFactor ?? (objectType === 'asset' ? 2.2 : 1.8)
 
-  // Use refs for callbacks to prevent unnecessary re-renders
   const onLoadRef = useRef(onLoad)
   const onErrorRef = useRef(onError)
   useEffect(() => {
@@ -370,7 +372,6 @@ export const Model3DViewer: React.FC<Model3DViewerProps> = ({
     onErrorRef.current = onError
   })
 
-  // Handle manifest errors
   useEffect(() => {
     if (manifestError) {
       const errorMessage = (manifestError as Error)?.message || 'Failed to load 3D manifest'
@@ -379,7 +380,6 @@ export const Model3DViewer: React.FC<Model3DViewerProps> = ({
     }
   }, [manifestError])
 
-  // Camera settings
   const fov = customFov ?? (objectType === 'asset' ? 40 : 45)
   const initialCameraZ = objectType === 'asset' ? 5 : 12
 
@@ -395,13 +395,11 @@ export const Model3DViewer: React.FC<Model3DViewerProps> = ({
     onErrorRef.current?.(errorMessage)
   }, [])
 
-  // Use ref for onLoadStart to avoid effect dependency issues
   const onLoadStartRef = useRef(onLoadStart)
   useEffect(() => {
     onLoadStartRef.current = onLoadStart
   })
 
-  // Start loading when manifest URL is available
   useEffect(() => {
     if (effectiveManifestUrl) {
       setIsLoading(true)
@@ -412,9 +410,8 @@ export const Model3DViewer: React.FC<Model3DViewerProps> = ({
 
   const combinedClassName = `relative w-full h-full ${className}`.trim()
 
-  // Use demand frameloop - drei's OrbitControls.onChange and AnimatedRig call invalidate() when needed
-  // Auto-rotate needs continuous rendering
   const isAutoRotating = autoRotateSpeed > 0 && !enableRotate
+  const needsAlwaysFrameloop = isAutoRotating || hasFireEffects || hasSparklesEffects
 
   if (!effectiveManifestUrl) {
     return <div className={combinedClassName} />
@@ -432,7 +429,7 @@ export const Model3DViewer: React.FC<Model3DViewerProps> = ({
     >
       <Canvas
         key={effectiveManifestUrl}
-        frameloop={isAutoRotating ? 'always' : 'demand'}
+        frameloop={needsAlwaysFrameloop ? 'always' : 'demand'}
         camera={{
           fov,
           near: 0.1,
@@ -444,7 +441,6 @@ export const Model3DViewer: React.FC<Model3DViewerProps> = ({
           alpha: true,
           powerPreference: 'high-performance'
         }}
-        // Enable performance monitoring for AdaptiveDpr
         performance={{ min: 0.5 }}
         onCreated={({ gl }) => {
           gl.outputColorSpace = THREE.SRGBColorSpace
@@ -459,9 +455,7 @@ export const Model3DViewer: React.FC<Model3DViewerProps> = ({
         }}
       >
         <ContextCleanup />
-        {/* Freeze shadow maps for performance - shadows are static anyway */}
         <BakeShadows />
-        {/* Reduce pixel ratio during interaction for smoother performance */}
         <AdaptiveDpr pixelated />
         <SceneLighting objectType={objectType} />
         <SceneControls
@@ -483,6 +477,10 @@ export const Model3DViewer: React.FC<Model3DViewerProps> = ({
               onLoad={handleLoad}
               onError={handleError}
             />
+            {/* Render fire effects from asset hierarchy */}
+            {hasFireEffects && <AssetFireEffects fires={fires} scale={1} />}
+            {/* Render sparkles effects from asset hierarchy */}
+            {hasSparklesEffects && <AssetSparklesEffects sparkles={sparkles} scale={1} />}
           </AnimatedRig>
         </Suspense>
       </Canvas>
@@ -497,6 +495,7 @@ export const Model3DViewer: React.FC<Model3DViewerProps> = ({
 const Avatar3DThumbnail: React.FC<Avatar3DThumbnailProps> = ({
   userId,
   assetId,
+  assetTypeId,
   manifestUrl,
   type,
   cookie,
@@ -515,6 +514,7 @@ const Avatar3DThumbnail: React.FC<Avatar3DThumbnailProps> = ({
     <Model3DViewer
       userId={userId}
       assetId={assetId}
+      assetTypeId={assetTypeId}
       manifestUrl={manifestUrl}
       type={type}
       cookie={cookie}

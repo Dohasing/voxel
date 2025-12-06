@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import {
   Users,
   HardDrive,
@@ -11,12 +11,17 @@ import {
   Plus,
   Trash2,
   Check,
-  Info
+  Info,
+  ChevronUp,
+  ChevronDown,
+  Eye,
+  EyeOff,
+  RotateCcw
 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import Color from 'color'
 import { useQueryClient, useQuery, useMutation } from '@tanstack/react-query'
-import { Account, Settings } from '../../types'
+import { Account, Settings, TabId, ThemePreference, DEFAULT_ACCENT_COLOR } from '../../types'
 import { cn } from '../../lib/utils'
 import CustomCheckbox from '../../components/UI/buttons/CustomCheckbox'
 import CustomDropdown, { DropdownOption } from '../../components/UI/menus/CustomDropdown'
@@ -56,12 +61,21 @@ import {
   isValidGoogleFontFamily
 } from '../../utils/fontUtils'
 import { UpdaterCard } from '../updater'
+import {
+  DEFAULT_SIDEBAR_TAB_ORDER,
+  LOCKED_SIDEBAR_TABS,
+  sanitizeSidebarHidden,
+  sanitizeSidebarOrder
+} from '@shared/navigation'
+import { SIDEBAR_TAB_DEFINITION_MAP, SidebarTabDefinition } from '../../constants/sidebarTabs'
 
 interface SettingsTabProps {
   accounts: Account[]
   settings: Settings
   onUpdateSettings: (newSettings: Partial<Settings>) => void
 }
+
+const isMac = window.platform?.isMac ?? false
 
 const SettingsTab: React.FC<SettingsTabProps> = ({ accounts, settings, onUpdateSettings }) => {
   const [activeTab, setActiveTab] = useState<
@@ -77,6 +91,23 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ accounts, settings, onUpdateS
 
   // Use shared installations store instead of local state + localStorage
   const installations = useInstallations()
+
+  const sidebarTabOrder = useMemo(
+    () => sanitizeSidebarOrder(settings.sidebarTabOrder),
+    [settings.sidebarTabOrder]
+  )
+  const sidebarHiddenTabs = useMemo(
+    () => sanitizeSidebarHidden(settings.sidebarHiddenTabs),
+    [settings.sidebarHiddenTabs]
+  )
+  const sidebarTabs = useMemo(
+    () =>
+      sidebarTabOrder
+        .map((tabId) => SIDEBAR_TAB_DEFINITION_MAP[tabId])
+        .filter(Boolean) as SidebarTabDefinition[],
+    [sidebarTabOrder]
+  )
+  const hiddenSidebarTabsSet = useMemo(() => new Set(sidebarHiddenTabs), [sidebarHiddenTabs])
 
   // Custom fonts queries
   const { data: customFonts = [] } = useQuery({
@@ -187,7 +218,12 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ accounts, settings, onUpdateS
     onUpdateSettings({ defaultInstallationPath: value === '' ? undefined : value })
   }
 
+  const handleThemeChange = (value: string) => {
+    onUpdateSettings({ theme: value as ThemePreference })
+  }
+
   const handleMultiInstanceChange = () => {
+    if (isMac) return
     onUpdateSettings({ allowMultipleInstances: !settings.allowMultipleInstances })
   }
 
@@ -203,6 +239,36 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ accounts, settings, onUpdateS
 
   const handleProfileCardToggle = () => {
     onUpdateSettings({ showSidebarProfileCard: !settings.showSidebarProfileCard })
+  }
+
+  const handleToggleTabVisibility = (tabId: TabId) => {
+    if (LOCKED_SIDEBAR_TABS.includes(tabId)) return
+
+    const nextHidden = hiddenSidebarTabsSet.has(tabId)
+      ? sidebarHiddenTabs.filter((id) => id !== tabId)
+      : [...sidebarHiddenTabs, tabId]
+
+    onUpdateSettings({ sidebarHiddenTabs: nextHidden })
+  }
+
+  const handleMoveTab = (tabId: TabId, direction: number) => {
+    const currentIndex = sidebarTabOrder.indexOf(tabId)
+    if (currentIndex === -1) return
+
+    const targetIndex = currentIndex + direction
+    if (targetIndex < 0 || targetIndex >= sidebarTabOrder.length) return
+
+    const nextOrder = [...sidebarTabOrder]
+    const [moved] = nextOrder.splice(currentIndex, 1)
+    nextOrder.splice(targetIndex, 0, moved)
+    onUpdateSettings({ sidebarTabOrder: nextOrder })
+  }
+
+  const handleResetNavigation = () => {
+    onUpdateSettings({
+      sidebarTabOrder: DEFAULT_SIDEBAR_TAB_ORDER,
+      sidebarHiddenTabs: []
+    })
   }
 
   const handlePinSave = async (newPin: string | null, currentPin?: string) => {
@@ -237,14 +303,24 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ accounts, settings, onUpdateS
     }))
   ]
 
+  const themeOptions: DropdownOption[] = [
+    { value: 'system', label: 'System', subLabel: 'Match OS setting' },
+    { value: 'light', label: 'Light' },
+    { value: 'dark', label: 'Dark' }
+  ]
+
+  const handleResetAccent = () => {
+    onUpdateSettings({ accentColor: DEFAULT_ACCENT_COLOR })
+  }
+
   return (
-    <div className="flex flex-col h-full bg-neutral-950">
-      <div className="shrink-0 h-[72px] bg-neutral-950 border-b border-neutral-800 flex items-center justify-between px-6 z-20">
-        <h2 className="text-xl font-bold text-white">Settings</h2>
+    <div className="flex flex-col h-full bg-[var(--color-app-bg)] text-[var(--color-text-secondary)]">
+      <div className="shrink-0 h-[72px] bg-[var(--color-surface-strong)] border-b border-[var(--color-border)] flex items-center justify-between px-6 z-20">
+        <h2 className="text-xl font-bold text-[var(--color-text-primary)]">Settings</h2>
       </div>
 
       {/* Tabs Header */}
-      <div className="shrink-0 border-b border-neutral-800 bg-neutral-950">
+      <div className="shrink-0 border-b border-[var(--color-border)] bg-[var(--color-surface)]">
         <div className="max-w-2xl mx-auto">
           <div className="relative flex">
             {/* Animated sliding indicator */}
@@ -270,8 +346,10 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ accounts, settings, onUpdateS
             <button
               onClick={() => setActiveTab('general')}
               className={cn(
-                'flex-1 py-4 text-sm font-medium transition-colors flex items-center justify-center gap-2 relative z-10 hover:bg-neutral-900/50 active:bg-neutral-900',
-                activeTab === 'general' ? 'text-white' : 'text-neutral-500 hover:text-neutral-300'
+                'flex-1 py-4 text-sm font-medium transition-colors flex items-center justify-center gap-2 relative z-10 hover:bg-[var(--color-surface-hover)] active:bg-[var(--color-surface-muted)]',
+                activeTab === 'general'
+                  ? 'text-[var(--color-text-primary)]'
+                  : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]'
               )}
             >
               <Sliders size={16} />
@@ -281,10 +359,10 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ accounts, settings, onUpdateS
             <button
               onClick={() => setActiveTab('appearance')}
               className={cn(
-                'flex-1 py-4 text-sm font-medium transition-colors flex items-center justify-center gap-2 relative z-10 hover:bg-neutral-900/50 active:bg-neutral-900',
+                'flex-1 py-4 text-sm font-medium transition-colors flex items-center justify-center gap-2 relative z-10 hover:bg-[var(--color-surface-hover)] active:bg-[var(--color-surface-muted)]',
                 activeTab === 'appearance'
-                  ? 'text-white'
-                  : 'text-neutral-500 hover:text-neutral-300'
+                  ? 'text-[var(--color-text-primary)]'
+                  : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]'
               )}
             >
               <Type size={16} />
@@ -294,10 +372,10 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ accounts, settings, onUpdateS
             <button
               onClick={() => setActiveTab('notifications')}
               className={cn(
-                'flex-1 py-4 text-sm font-medium transition-colors flex items-center justify-center gap-2 relative z-10 hover:bg-neutral-900/50 active:bg-neutral-900',
+                'flex-1 py-4 text-sm font-medium transition-colors flex items-center justify-center gap-2 relative z-10 hover:bg-[var(--color-surface-hover)] active:bg-[var(--color-surface-muted)]',
                 activeTab === 'notifications'
-                  ? 'text-white'
-                  : 'text-neutral-500 hover:text-neutral-300'
+                  ? 'text-[var(--color-text-primary)]'
+                  : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]'
               )}
             >
               <Bell size={16} />
@@ -307,8 +385,10 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ accounts, settings, onUpdateS
             <button
               onClick={() => setActiveTab('security')}
               className={cn(
-                'flex-1 py-4 text-sm font-medium transition-colors flex items-center justify-center gap-2 relative z-10 hover:bg-neutral-900/50 active:bg-neutral-900',
-                activeTab === 'security' ? 'text-white' : 'text-neutral-500 hover:text-neutral-300'
+                'flex-1 py-4 text-sm font-medium transition-colors flex items-center justify-center gap-2 relative z-10 hover:bg-[var(--color-surface-hover)] active:bg-[var(--color-surface-muted)]',
+                activeTab === 'security'
+                  ? 'text-[var(--color-text-primary)]'
+                  : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]'
               )}
             >
               <Shield size={16} />
@@ -318,8 +398,10 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ accounts, settings, onUpdateS
             <button
               onClick={() => setActiveTab('about')}
               className={cn(
-                'flex-1 py-4 text-sm font-medium transition-colors flex items-center justify-center gap-2 relative z-10 hover:bg-neutral-900/50 active:bg-neutral-900',
-                activeTab === 'about' ? 'text-white' : 'text-neutral-500 hover:text-neutral-300'
+                'flex-1 py-4 text-sm font-medium transition-colors flex items-center justify-center gap-2 relative z-10 hover:bg-[var(--color-surface-hover)] active:bg-[var(--color-surface-muted)]',
+                activeTab === 'about'
+                  ? 'text-[var(--color-text-primary)]'
+                  : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]'
               )}
             >
               <Info size={16} />
@@ -362,47 +444,6 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ accounts, settings, onUpdateS
                     />
                   </div>
 
-                  {/* Accent Color Setting */}
-                  <div className="flex flex-col space-y-2">
-                    <label
-                      htmlFor="accent-color"
-                      className="text-sm font-medium text-neutral-400 flex items-center"
-                    >
-                      <Palette size={16} className="mr-2" />
-                      Accent Color
-                    </label>
-                    <p className="text-xs text-neutral-500 mb-2">
-                      Customize the highlight color used for buttons, indicators, and focus rings.
-                    </p>
-                    <div className="flex items-center gap-3">
-                      <button
-                        type="button"
-                        onClick={() => setIsColorPickerOpen(true)}
-                        className="h-12 w-12 rounded-lg border border-neutral-800 bg-transparent cursor-pointer hover:border-neutral-700 transition-colors flex-shrink-0"
-                        style={{ backgroundColor: settings.accentColor }}
-                        aria-label="Select accent color"
-                      />
-                      <div className="flex-1 flex flex-col justify-center">
-                        <label
-                          htmlFor="accent-color-hex"
-                          className="text-xs text-neutral-500 uppercase tracking-wide"
-                        >
-                          Hex Value
-                        </label>
-                        <input
-                          id="accent-color-hex"
-                          type="text"
-                          value={settings.accentColor}
-                          readOnly
-                          placeholder="#ffffff"
-                          spellCheck={false}
-                          className="mt-1 w-full bg-neutral-900 border border-neutral-800 rounded-lg px-3 py-2 text-sm text-white focus:border-[var(--accent-color)] focus:outline-none cursor-pointer"
-                          onClick={() => setIsColorPickerOpen(true)}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
                   {/* Default Installation Setting */}
                   <div className="flex flex-col space-y-2">
                     <label
@@ -426,22 +467,23 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ accounts, settings, onUpdateS
 
                   {/* Multi-Instance Setting */}
                   <div className="flex items-start space-x-3 p-4 bg-neutral-900/30 rounded-lg border border-neutral-800/50 hover:border-neutral-700/50 transition-colors">
-                    <div className="mt-1">
-                      <CustomCheckbox
-                        checked={settings.allowMultipleInstances}
-                        onChange={handleMultiInstanceChange}
-                      />
+                    <div className="mt-1 opacity-50 pointer-events-none">
+                      <CustomCheckbox checked={false} onChange={() => {}} />
                     </div>
                     <div>
                       <label className="text-sm font-medium text-neutral-300 block mb-1">
                         Allow Multiple Instances
                       </label>
                       <p className="text-xs text-neutral-500 leading-relaxed">
-                        Enable launching multiple Roblox clients simultaneously.
-                        <span className="block mt-1 text-yellow-600/80">
-                          Note: This feature is considered to be against the Roblox Terms of
-                          Service. Use at your own risk.
-                        </span>
+                        {isMac
+                          ? 'Disabled on macOS.'
+                          : 'Enable launching multiple Roblox clients simultaneously.'}
+                        {!isMac && (
+                          <span className="block mt-1 text-yellow-600/80">
+                            Note: This feature is considered to be against the Roblox Terms of
+                            Service. Use at your own risk.
+                          </span>
+                        )}
                       </p>
                     </div>
                   </div>
@@ -464,6 +506,92 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ accounts, settings, onUpdateS
                       </p>
                     </div>
                   </div>
+
+                  {/* Sidebar Tabs Setting */}
+                  <div className="p-4 bg-neutral-900/30 rounded-lg border border-neutral-800/50 hover:border-neutral-700/50 transition-colors space-y-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <label className="text-sm font-medium text-neutral-300 block mb-1">
+                          Sidebar Tabs
+                        </label>
+                        <p className="text-xs text-neutral-500 leading-relaxed">
+                          Hide tabs you do not use and reorder the sidebar to match your workflow.
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleResetNavigation}
+                        className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-md border border-neutral-800 text-neutral-300 hover:text-white hover:border-neutral-700 hover:bg-neutral-800/40 transition-colors"
+                      >
+                        <RotateCcw size={14} />
+                        Reset
+                      </button>
+                    </div>
+
+                    <div className="space-y-2">
+                      {sidebarTabs.map((tab, index) => {
+                        const isHidden = hiddenSidebarTabsSet.has(tab.id)
+                        const isLocked = LOCKED_SIDEBAR_TABS.includes(tab.id)
+
+                        return (
+                          <div
+                            key={tab.id}
+                            className="flex items-center justify-between gap-3 px-3 py-2 rounded-lg border border-neutral-800 bg-neutral-900/50"
+                          >
+                            <div className="flex items-center gap-3 min-w-0">
+                              <CustomCheckbox
+                                checked={!isHidden || isLocked}
+                                disabled={isLocked}
+                                onChange={() => handleToggleTabVisibility(tab.id)}
+                              />
+                              <tab.icon size={16} className="text-neutral-400 flex-shrink-0" />
+                              <div className="min-w-0">
+                                <div className="text-sm font-medium text-white">{tab.label}</div>
+                                <div className="flex items-center gap-1 text-xs text-neutral-500">
+                                  {isLocked ? (
+                                    <span className="text-[var(--accent-color)] font-medium">
+                                      Always visible
+                                    </span>
+                                  ) : isHidden ? (
+                                    <>
+                                      <EyeOff size={12} />
+                                      Hidden
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Eye size={12} />
+                                      Visible
+                                    </>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-1 flex-shrink-0">
+                              <button
+                                type="button"
+                                onClick={() => handleMoveTab(tab.id, -1)}
+                                disabled={index === 0}
+                                className="p-2 rounded-md border border-neutral-800 text-neutral-300 hover:text-white hover:border-neutral-700 hover:bg-neutral-800/60 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                                aria-label={`Move ${tab.label} up`}
+                              >
+                                <ChevronUp size={14} />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleMoveTab(tab.id, 1)}
+                                disabled={index === sidebarTabs.length - 1}
+                                className="p-2 rounded-md border border-neutral-800 text-neutral-300 hover:text-white hover:border-neutral-700 hover:bg-neutral-800/60 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                                aria-label={`Move ${tab.label} down`}
+                              >
+                                <ChevronDown size={14} />
+                              </button>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -477,6 +605,76 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ accounts, settings, onUpdateS
                 <p className="text-sm text-neutral-400 mb-6">Customize fonts and visual styles.</p>
 
                 <div className="space-y-6">
+                  {/* Theme selection */}
+                  <div className="flex flex-col space-y-2">
+                    <label className="text-sm font-medium text-neutral-400 flex items-center">
+                      <Palette size={16} className="mr-2" />
+                      Theme
+                    </label>
+                    <p className="text-xs text-neutral-500 mb-2">
+                      Choose light or dark mode, or follow your system preference.
+                    </p>
+                    <CustomDropdown
+                      options={themeOptions}
+                      value={settings.theme}
+                      onChange={handleThemeChange}
+                      placeholder="Select Theme"
+                    />
+                  </div>
+
+                  {/* Accent Color Setting */}
+                  <div className="flex flex-col space-y-2">
+                    <label
+                      htmlFor="accent-color"
+                      className="text-sm font-medium text-neutral-400 flex items-center"
+                    >
+                      <Palette size={16} className="mr-2" />
+                      Accent Color
+                    </label>
+                    <p className="text-xs text-neutral-500 mb-2">
+                      Customize the highlight color used for buttons, indicators, and focus rings.
+                    </p>
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setIsColorPickerOpen(true)}
+                        className="h-12 w-12 rounded-lg border border-neutral-800 bg-transparent cursor-pointer hover:border-neutral-700 transition-colors flex-shrink-0"
+                        style={{ backgroundColor: settings.accentColor }}
+                        aria-label="Select accent color"
+                      />
+                      <div className="flex-1 flex flex-col justify-center gap-2">
+                        <label
+                          htmlFor="accent-color-hex"
+                          className="text-xs text-neutral-500 uppercase tracking-wide"
+                        >
+                          Hex Value
+                        </label>
+                        <input
+                          id="accent-color-hex"
+                          type="text"
+                          value={settings.accentColor}
+                          readOnly
+                          placeholder="#ffffff"
+                          spellCheck={false}
+                          className="mt-1 w-full bg-neutral-900 border border-neutral-800 rounded-lg px-3 py-2 text-sm text-white focus:border-[var(--accent-color)] focus:outline-none cursor-pointer"
+                          onClick={() => setIsColorPickerOpen(true)}
+                        />
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={handleResetAccent}
+                            className="px-3 py-2 text-xs font-medium rounded-lg border border-neutral-800 text-neutral-200 hover:border-neutral-700 hover:text-white transition-colors"
+                          >
+                            Reset to default
+                          </button>
+                          <span className="text-xs text-neutral-500 self-center">
+                            Default: {DEFAULT_ACCENT_COLOR}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Custom Fonts Section */}
                   <div className="flex flex-col space-y-2">
                     <label className="text-sm font-medium text-neutral-400 flex items-center">
