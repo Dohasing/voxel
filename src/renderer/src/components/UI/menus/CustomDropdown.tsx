@@ -63,8 +63,8 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
 
   const selectedOption = options.find((opt) => opt.value === value)
 
-  const defaultButtonClasses = `px-3 py-2.5 bg-neutral-900 border border-neutral-800 rounded-lg text-sm transition-all hover:border-neutral-700 focus:outline-none focus:ring-1 focus:ring-neutral-700 ${
-    isOpen ? 'border-neutral-700 ring-1 ring-neutral-700' : ''
+  const defaultButtonClasses = `px-3 py-2.5 bg-[var(--color-surface-muted)] border border-[var(--color-border)] rounded-lg text-sm transition-all hover:border-[var(--color-border-strong)] focus:outline-none focus:ring-1 focus:ring-[var(--focus-ring)] ${
+    isOpen ? 'border-[var(--color-border-strong)] ring-1 ring-[var(--focus-ring)]' : ''
   }`
 
   const menuElement = (
@@ -76,7 +76,7 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 8, scale: 0.95 }}
           transition={{ duration: 0.15, ease: 'easeOut' }}
-          className="fixed bg-neutral-900 border border-neutral-800 rounded-xl shadow-2xl z-[10000] overflow-hidden"
+          className="fixed bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl shadow-2xl z-[10000] overflow-hidden"
           style={{
             top: menuPosition.top,
             left: menuPosition.left,
@@ -95,8 +95,8 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
                 }}
                 className={`pressable w-full text-left px-3 py-2.5 text-sm flex items-center justify-between rounded-lg transition-colors ${
                   value === option.value
-                    ? 'bg-neutral-800 text-white'
-                    : 'text-neutral-300 hover:bg-neutral-800 hover:text-white'
+                    ? 'bg-[var(--color-surface-hover)] text-[var(--color-text-primary)]'
+                    : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text-primary)]'
                 }`}
               >
                 <div className="flex items-center gap-2.5 min-w-0 flex-1">
@@ -105,7 +105,7 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
                     <span className="font-medium truncate w-full">{option.label}</span>
                     {option.subLabel && (
                       <span
-                        className={`text-xs truncate w-full ${value === option.value ? 'text-neutral-400' : 'text-neutral-500'}`}
+                        className={`text-xs truncate w-full ${value === option.value ? 'text-[var(--color-text-muted)]' : 'text-[var(--color-text-muted)]/80'}`}
                       >
                         {option.subLabel}
                       </span>
@@ -113,7 +113,7 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
                   </div>
                 </div>
                 {value === option.value && (
-                  <Check size={14} className="shrink-0 ml-2 text-neutral-400" />
+                  <Check size={14} className="shrink-0 ml-2 text-[var(--color-text-muted)]" />
                 )}
               </button>
             ))}
@@ -134,15 +134,17 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
           {selectedOption ? (
             <div className="flex items-center gap-2 truncate">
               {selectedOption.icon && <span className="shrink-0">{selectedOption.icon}</span>}
-              <span className="text-neutral-200 font-bold truncate">{selectedOption.label}</span>
+              <span className="text-[var(--color-text-primary)] font-bold truncate">
+                {selectedOption.label}
+              </span>
             </div>
           ) : (
-            <span className="text-neutral-500">{placeholder}</span>
+            <span className="text-[var(--color-text-muted)]">{placeholder}</span>
           )}
         </div>
         <ChevronDown
           size={16}
-          className={`text-neutral-500 shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+          className={`text-[var(--color-text-muted)] shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
         />
       </button>
 

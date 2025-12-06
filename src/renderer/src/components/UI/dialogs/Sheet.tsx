@@ -205,9 +205,9 @@ const SheetContent = React.forwardRef<HTMLDivElement, SheetContentProps>(
       <div
         ref={ref}
         className={cn(
-          'flex flex-col h-full bg-neutral-950 rounded-t-[20px] shadow-2xl overflow-hidden',
-          'border-t border-x border-neutral-800',
-          'ring-1 ring-white/5',
+          'flex flex-col h-full bg-[var(--color-surface)] rounded-t-[20px] shadow-2xl overflow-hidden',
+          'border-t border-x border-[var(--color-border)]',
+          'ring-1 ring-[var(--accent-color-ring)]',
           className
         )}
         onContextMenu={(e) => {
@@ -245,7 +245,7 @@ const SheetHandle = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDi
         onPointerDown={handlePointerDown}
         {...props}
       >
-        <div className="mx-auto w-10 h-1 rounded-full bg-neutral-600/80" />
+        <div className="mx-auto w-10 h-1 rounded-full bg-[var(--color-border-strong)]/60" />
       </div>
     )
   }
@@ -257,7 +257,7 @@ const SheetHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDi
     <div
       ref={ref}
       className={cn(
-        'flex-shrink-0 flex items-center justify-between px-6 pb-4 border-b border-neutral-800/80',
+        'flex-shrink-0 flex items-center justify-between px-6 pb-4 border-b border-[var(--color-border)]',
         className
       )}
       {...props}
@@ -268,7 +268,11 @@ SheetHeader.displayName = 'SheetHeader'
 
 const SheetTitle = React.forwardRef<HTMLHeadingElement, React.HTMLAttributes<HTMLHeadingElement>>(
   ({ className, ...props }, ref) => (
-    <h2 ref={ref} className={cn('text-xl font-bold text-white', className)} {...props} />
+    <h2
+      ref={ref}
+      className={cn('text-xl font-bold text-[var(--color-text-primary)]', className)}
+      {...props}
+    />
   )
 )
 SheetTitle.displayName = 'SheetTitle'
@@ -286,7 +290,7 @@ const SheetClose = React.forwardRef<
         onClose()
       }}
       className={cn(
-        'pressable p-1 text-neutral-500 hover:text-white hover:bg-neutral-800 rounded transition-colors',
+        'pressable p-1 text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-hover)] rounded transition-colors',
         className
       )}
       {...props}

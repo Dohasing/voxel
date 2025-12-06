@@ -275,7 +275,7 @@ const UserProfileView: React.FC<ProfileViewProps> = ({
 
   return (
     <div
-      className="relative flex flex-col w-full h-full bg-neutral-950 overflow-hidden font-sans"
+      className="relative flex flex-col w-full h-full bg-[var(--color-app-bg)] overflow-hidden font-sans"
       onContextMenu={handleContextMenu}
     >
       <div className="flex-1 overflow-y-auto scrollbar-thin p-6">
@@ -348,16 +348,16 @@ const UserProfileView: React.FC<ProfileViewProps> = ({
       </div>
 
       <Dialog isOpen={isWearingOpen} onClose={() => setIsWearingOpen(false)}>
-        <DialogContent className="max-w-3xl bg-neutral-950 border-neutral-800/60">
+        <DialogContent className="max-w-3xl bg-[var(--color-surface-strong)] border border-[var(--color-border)]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3 pl-0">
-              <div className="p-2 bg-neutral-900 rounded-lg">
-                <Shirt size={20} className="text-neutral-300" />
+              <div className="p-2 bg-[var(--color-surface-hover)] rounded-lg border border-[var(--color-border-subtle)]">
+                <Shirt size={20} className="text-[var(--color-text-secondary)]" />
               </div>
               <div className="flex flex-col">
                 <span>Currently Wearing</span>
                 {!wearingLoading && wearingItems.length > 0 && (
-                  <span className="text-xs font-normal text-neutral-500">
+                  <span className="text-xs font-normal text-[var(--color-text-muted)]">
                     {wearingItems.length} items equipped
                   </span>
                 )}
@@ -436,16 +436,16 @@ const UserProfileView: React.FC<ProfileViewProps> = ({
       </Dialog>
 
       <Dialog isOpen={isOutfitsOpen} onClose={() => setIsOutfitsOpen(false)}>
-        <DialogContent className="max-w-3xl bg-neutral-950 border-neutral-800/60">
+        <DialogContent className="max-w-3xl bg-[var(--color-surface-strong)] border border-[var(--color-border)]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3 pl-0">
-              <div className="p-2 bg-neutral-900 rounded-lg">
-                <Package size={20} className="text-neutral-300" />
+              <div className="p-2 bg-[var(--color-surface-hover)] rounded-lg border border-[var(--color-border-subtle)]">
+                <Package size={20} className="text-[var(--color-text-secondary)]" />
               </div>
               <div className="flex flex-col">
                 <span>Outfits</span>
                 {!outfitsLoading && outfits.length > 0 && (
-                  <span className="text-xs font-normal text-neutral-500">
+                  <span className="text-xs font-normal text-[var(--color-text-muted)]">
                     {outfits.length} saved outfits
                   </span>
                 )}
@@ -475,7 +475,7 @@ const UserProfileView: React.FC<ProfileViewProps> = ({
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ duration: 0.2, delay: Math.min(index * 0.02, 0.3) }}
-                      className="group relative aspect-square bg-neutral-900/80 border border-neutral-800/60 rounded-xl overflow-hidden cursor-pointer transition-all duration-200 hover:border-neutral-600 hover:bg-neutral-800/80 hover:shadow-lg"
+                      className="group relative aspect-square bg-[var(--color-surface-strong)] border border-[var(--color-border)] rounded-xl overflow-hidden cursor-pointer transition-all duration-200 hover:border-[var(--color-border-strong)] hover:bg-[var(--color-surface-hover)] hover:shadow-lg"
                       onClick={async () => {
                         setSelectedOutfit({
                           id: outfit.id,
@@ -565,7 +565,7 @@ const UserProfileView: React.FC<ProfileViewProps> = ({
           setOutfitDetails(null)
         }}
       >
-        <DialogContent className="max-w-3xl bg-neutral-950 border-neutral-800/60">
+        <DialogContent className="max-w-3xl bg-[var(--color-surface-strong)] border border-[var(--color-border)]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3 pl-0">
               <button
@@ -573,14 +573,14 @@ const UserProfileView: React.FC<ProfileViewProps> = ({
                   setSelectedOutfit(null)
                   setOutfitDetails(null)
                 }}
-                className="p-2 bg-neutral-900 rounded-lg hover:bg-neutral-800 transition-colors"
+                className="p-2 bg-[var(--color-surface-hover)] rounded-lg border border-[var(--color-border-subtle)] hover:bg-[var(--color-surface-muted)] transition-colors"
               >
-                <ArrowLeft size={20} className="text-neutral-300" />
+                <ArrowLeft size={20} className="text-[var(--color-text-secondary)]" />
               </button>
               <div className="flex flex-col">
                 <span className="line-clamp-1">{selectedOutfit?.name || 'Outfit'}</span>
                 {!outfitDetailsLoading && outfitDetails && (
-                  <span className="text-xs font-normal text-neutral-500">
+                  <span className="text-xs font-normal text-[var(--color-text-muted)]">
                     {outfitDetails.assets.length} items
                   </span>
                 )}
@@ -592,7 +592,7 @@ const UserProfileView: React.FC<ProfileViewProps> = ({
             <AnimatePresence mode="wait">
               {outfitDetailsLoading ? (
                 <div className="flex items-center justify-center py-16">
-                  <Loader2 size={24} className="text-neutral-500 animate-spin" />
+                  <Loader2 size={24} className="text-[var(--color-text-muted)] animate-spin" />
                 </div>
               ) : outfitDetails && outfitDetails.assets.length > 0 ? (
                 <motion.div
@@ -609,7 +609,7 @@ const UserProfileView: React.FC<ProfileViewProps> = ({
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ duration: 0.2, delay: Math.min(index * 0.02, 0.3) }}
-                      className="group relative aspect-square bg-neutral-900/80 border border-neutral-800/60 rounded-xl overflow-hidden cursor-pointer transition-all duration-200 hover:border-neutral-600 hover:bg-neutral-800/80 hover:shadow-lg"
+                      className="group relative aspect-square bg-[var(--color-surface-strong)] border border-[var(--color-border)] rounded-xl overflow-hidden cursor-pointer transition-all duration-200 hover:border-[var(--color-border-strong)] hover:bg-[var(--color-surface-hover)] hover:shadow-lg"
                       onClick={() =>
                         setSelectedAccessory({
                           id: item.id,
@@ -706,7 +706,7 @@ const UserProfileView: React.FC<ProfileViewProps> = ({
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 8, scale: 0.95 }}
               transition={{ duration: 0.15, ease: 'easeOut' }}
-              className="fixed z-[100] w-52 bg-neutral-900 border border-neutral-800 rounded-xl shadow-2xl overflow-hidden"
+              className="fixed z-[100] w-52 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl shadow-2xl overflow-hidden"
               style={{
                 top: Math.min(contextMenu.y, window.innerHeight - 220),
                 left: Math.min(contextMenu.x, window.innerWidth - 220)
@@ -718,7 +718,7 @@ const UserProfileView: React.FC<ProfileViewProps> = ({
                     setIsWearingOpen(true)
                     setContextMenu(null)
                   }}
-                  className="pressable w-full text-left px-3 py-2.5 text-sm text-neutral-300 hover:bg-neutral-800 hover:text-white flex items-center gap-2.5 rounded-lg transition-colors"
+                  className="pressable w-full text-left px-3 py-2.5 text-sm text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text-primary)] flex items-center gap-2.5 rounded-lg transition-colors"
                 >
                   <Shirt size={16} />
                   <span className="font-medium">Currently Wearing</span>
@@ -728,7 +728,7 @@ const UserProfileView: React.FC<ProfileViewProps> = ({
                     setIsOutfitsOpen(true)
                     setContextMenu(null)
                   }}
-                  className="pressable w-full text-left px-3 py-2.5 text-sm text-neutral-300 hover:bg-neutral-800 hover:text-white flex items-center gap-2.5 rounded-lg transition-colors"
+                  className="pressable w-full text-left px-3 py-2.5 text-sm text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text-primary)] flex items-center gap-2.5 rounded-lg transition-colors"
                 >
                   <Package size={16} />
                   <span className="font-medium">View Outfits</span>
@@ -738,21 +738,23 @@ const UserProfileView: React.FC<ProfileViewProps> = ({
                     setIsInventoryOpen(true)
                     setContextMenu(null)
                   }}
-                  className="pressable w-full text-left px-3 py-2.5 text-sm text-neutral-300 hover:bg-neutral-800 hover:text-white flex items-center gap-2.5 rounded-lg transition-colors"
+                  className="pressable w-full text-left px-3 py-2.5 text-sm text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text-primary)] flex items-center gap-2.5 rounded-lg transition-colors"
                 >
                   <Box size={16} />
                   <span className="font-medium">View Inventory</span>
                 </button>
-                <div className="h-px bg-neutral-800 my-1" />
+                <div className="h-px bg-[var(--color-border)] my-1" />
                 <button
                   onClick={handleCopyUserId}
-                  className="pressable w-full text-left px-3 py-2.5 text-sm text-neutral-300 hover:bg-neutral-800 hover:text-white flex items-center gap-2.5 rounded-lg transition-colors"
+                  className="pressable w-full text-left px-3 py-2.5 text-sm text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text-primary)] flex items-center gap-2.5 rounded-lg transition-colors"
                 >
                   <Copy size={16} />
                   <span className="font-medium">Copy User ID</span>
                 </button>
-                <div className="h-px bg-neutral-800 my-1" />
-                <div className="px-3 py-2 text-xs text-neutral-500 font-mono">{userId}</div>
+                <div className="h-px bg-[var(--color-border)] my-1" />
+                <div className="px-3 py-2 text-xs text-[var(--color-text-muted)] font-mono">
+                  {userId}
+                </div>
               </div>
             </motion.div>
           </AnimatePresence>,

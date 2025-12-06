@@ -228,7 +228,7 @@ const TooltipContent = React.forwardRef<HTMLDivElement, any>(
           data-side={side}
           data-state={animationState}
           className={cn(
-            'whitespace-normal break-words text-left rounded-md border border-neutral-800 bg-neutral-950 px-3 py-2 text-xs font-medium text-neutral-50 shadow-md leading-tight',
+            'whitespace-normal break-words text-left rounded-md border border-[var(--color-border)] bg-[var(--color-surface-strong)] px-3 py-2 text-xs font-medium text-[var(--color-text-secondary)] shadow-md leading-tight',
             className
           )}
           style={{

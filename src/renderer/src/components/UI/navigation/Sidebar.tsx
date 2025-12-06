@@ -1,13 +1,5 @@
 import React, { useMemo, useRef, useState } from 'react'
-import {
-  Settings,
-  Menu,
-  ChevronLeft,
-  ArrowRightLeft,
-  LogOut,
-  ChevronUp,
-  Heart
-} from 'lucide-react'
+import { Settings, Menu, ChevronLeft, ArrowRightLeft, LogOut, ChevronUp, Heart } from 'lucide-react'
 import { Account, TabId } from '@renderer/types'
 import SidebarItem from './SidebarItem'
 import { Button } from '../buttons/Button'
@@ -30,10 +22,7 @@ import {
   sanitizeSidebarHidden,
   sanitizeSidebarOrder
 } from '@shared/navigation'
-import {
-  SIDEBAR_TAB_DEFINITION_MAP,
-  SidebarTabDefinition
-} from '@renderer/constants/sidebarTabs'
+import { SIDEBAR_TAB_DEFINITION_MAP, SidebarTabDefinition } from '@renderer/constants/sidebarTabs'
 
 // Bottom Profile Card Component with dropdown menu
 interface ProfileCardProps {
@@ -114,10 +103,10 @@ const ProfileCard = ({
                 className="relative w-full flex justify-center group"
               >
                 <img
-                  className={`h-10 w-10 rounded-full bg-neutral-900 object-cover border-2 transition-all duration-200 ${
+                  className={`h-10 w-10 rounded-full bg-[var(--color-surface)] object-cover border-2 transition-all duration-200 ${
                     isDropdownOpen
-                      ? 'border-neutral-600 ring-2 ring-neutral-600/30'
-                      : 'border-neutral-700 group-hover:border-neutral-500'
+                      ? 'border-[var(--color-border-strong)] ring-2 ring-[var(--focus-ring)]'
+                      : 'border-[var(--color-border)] group-hover:border-[var(--color-border-strong)]'
                   }`}
                   src={account.avatarUrl}
                   alt={account.displayName}
@@ -132,21 +121,21 @@ const ProfileCard = ({
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 8, scale: 0.95 }}
                     transition={{ duration: 0.15, ease: 'easeOut' }}
-                    className="absolute bottom-full left-3 mb-2 w-48 bg-neutral-900 border border-neutral-800 rounded-xl shadow-2xl z-50 overflow-hidden"
+                    className="absolute bottom-full left-3 mb-2 w-48 bg-[var(--color-surface-strong)] border border-[var(--color-border)] rounded-xl shadow-2xl z-50 overflow-hidden"
                   >
                     {/* Mini profile header */}
-                    <div className="p-3 border-b border-neutral-800">
+                    <div className="p-3 border-b border-[var(--color-border)]">
                       <div className="flex items-center gap-2.5">
                         <img
-                          className="h-8 w-8 rounded-full bg-neutral-900 object-cover border border-neutral-700"
+                          className="h-8 w-8 rounded-full bg-[var(--color-surface)] object-cover border border-[var(--color-border)]"
                           src={account.avatarUrl}
                           alt={account.displayName}
                         />
                         <div className="flex-1 min-w-0">
-                          <div className="font-semibold text-sm text-white truncate">
+                          <div className="font-semibold text-sm text-[var(--color-text-primary)] truncate">
                             {account.displayName}
                           </div>
-                          <div className="text-neutral-500 text-xs truncate">
+                          <div className="text-[var(--color-text-muted)] text-xs truncate">
                             @{account.username}
                           </div>
                         </div>
@@ -156,7 +145,7 @@ const ProfileCard = ({
                         <SlidingNumber
                           number={robuxBalance}
                           formatter={formatNumber}
-                          className="font-semibold text-white"
+                          className="font-semibold text-[var(--color-text-primary)]"
                         />
                       </div>
                     </div>
@@ -168,7 +157,7 @@ const ProfileCard = ({
                           className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm rounded-lg transition-colors ${
                             item.danger
                               ? 'text-red-400 hover:bg-red-500/10 hover:text-red-300'
-                              : 'text-neutral-300 hover:bg-neutral-800 hover:text-white'
+                              : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text-primary)]'
                           }`}
                         >
                           <item.icon size={16} />
@@ -198,7 +187,7 @@ const ProfileCard = ({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 8, scale: 0.95 }}
             transition={{ duration: 0.15, ease: 'easeOut' }}
-            className="absolute bottom-full left-3 right-3 mb-2 bg-neutral-900 border border-neutral-800 rounded-xl shadow-2xl z-50 overflow-hidden"
+            className="absolute bottom-full left-3 right-3 mb-2 bg-[var(--color-surface-strong)] border border-[var(--color-border)] rounded-xl shadow-2xl z-50 overflow-hidden"
           >
             <div className="p-1.5">
               {dropdownItems.map((item, index) => (
@@ -208,7 +197,7 @@ const ProfileCard = ({
                   className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-sm rounded-lg transition-colors ${
                     item.danger
                       ? 'text-red-400 hover:bg-red-500/10 hover:text-red-300'
-                      : 'text-neutral-300 hover:bg-neutral-800 hover:text-white'
+                      : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text-primary)]'
                   }`}
                 >
                   <item.icon size={16} />
@@ -226,7 +215,7 @@ const ProfileCard = ({
         className={`w-full rounded-xl border transition-all duration-200 text-left ${
           isDropdownOpen
             ? 'border-[var(--accent-color-border)] bg-[rgba(var(--accent-color-rgb),0.08)]'
-            : 'border-neutral-800 bg-neutral-800/40 hover:bg-neutral-800/60 hover:border-neutral-700'
+            : 'border-[var(--color-border)] bg-[var(--color-surface-muted)] hover:bg-[var(--color-surface-hover)] hover:border-[var(--color-border-strong)]'
         }`}
       >
         <div className="p-3">
@@ -234,8 +223,10 @@ const ProfileCard = ({
             {/* Avatar */}
             <div className="relative flex-shrink-0">
               <img
-                className={`h-10 w-10 rounded-full bg-neutral-900 object-cover border-2 transition-all duration-200 ${
-                  isDropdownOpen ? 'border-neutral-600' : 'border-neutral-700'
+                className={`h-10 w-10 rounded-full bg-[var(--color-surface)] object-cover border-2 transition-all duration-200 ${
+                  isDropdownOpen
+                    ? 'border-[var(--color-border-strong)]'
+                    : 'border-[var(--color-border)]'
                 }`}
                 src={account.avatarUrl}
                 alt={account.displayName}
@@ -246,17 +237,19 @@ const ProfileCard = ({
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between gap-2">
                 <div className="min-w-0 flex-1">
-                  <div className="font-semibold text-sm text-white truncate">
+                  <div className="font-semibold text-sm text-[var(--color-text-primary)] truncate">
                     {account.displayName}
                   </div>
-                  <div className="text-neutral-500 text-xs truncate">@{account.username}</div>
+                  <div className="text-[var(--color-text-muted)] text-xs truncate">
+                    @{account.username}
+                  </div>
                 </div>
                 <div className="flex items-center gap-1 flex-shrink-0">
                   <RobuxIcon className="w-3.5 h-3.5 text-emerald-400" />
                   <SlidingNumber
                     number={robuxBalance}
                     formatter={formatNumber}
-                    className="text-sm font-semibold text-white"
+                    className="text-sm font-semibold text-[var(--color-text-primary)]"
                   />
                 </div>
               </div>
@@ -266,7 +259,7 @@ const ProfileCard = ({
             <div
               className={`flex-shrink-0 transition-transform duration-200 ${isDropdownOpen ? '' : 'rotate-180'}`}
             >
-              <ChevronUp size={16} className="text-neutral-500" />
+              <ChevronUp size={16} className="text-[var(--color-text-muted)]" />
             </div>
           </div>
         </div>
@@ -306,10 +299,7 @@ const Sidebar = ({
   const toggleSidebarCollapsed = useToggleSidebarCollapsed()
 
   const normalizedOrder = useMemo(() => sanitizeSidebarOrder(tabOrder), [tabOrder])
-  const normalizedHiddenTabs = useMemo(
-    () => sanitizeSidebarHidden(hiddenTabs),
-    [hiddenTabs]
-  )
+  const normalizedHiddenTabs = useMemo(() => sanitizeSidebarHidden(hiddenTabs), [hiddenTabs])
   const visibleTabs = useMemo(
     () => getVisibleSidebarTabs(normalizedOrder, normalizedHiddenTabs),
     [normalizedHiddenTabs, normalizedOrder]
@@ -323,9 +313,7 @@ const Sidebar = ({
   )
   const sidebarTabsToRender = useMemo(
     () =>
-      sidebarTabs.filter(
-        (tab) => !(tab.id === 'Settings' && selectedAccount && showProfileCard)
-      ),
+      sidebarTabs.filter((tab) => !(tab.id === 'Settings' && selectedAccount && showProfileCard)),
     [selectedAccount, showProfileCard, sidebarTabs]
   )
 
@@ -336,14 +324,14 @@ const Sidebar = ({
       <motion.aside
         ref={sidebarRef}
         style={{ width: isSidebarCollapsed ? '72px' : `${sidebarWidth}px` }}
-        className={`flex flex-col border-r border-neutral-800 bg-[#111111] z-30 relative ${
+        className={`flex flex-col border-r border-[var(--color-border)] bg-[var(--color-surface-strong)] z-30 relative ${
           isSidebarCollapsed ? 'min-w-[72px]' : ''
         } ${!isResizing ? 'transition-[width] duration-300 ease-in-out' : ''}`}
         layout={shouldAnimateLayout}
       >
         {/* Sidebar Header - extra top padding on macOS for traffic lights */}
         <div
-          className={`flex items-center shrink-0 bg-[#111111] transition-all duration-300 ${
+          className={`flex items-center shrink-0 bg-[var(--color-surface-strong)] transition-all duration-300 ${
             isSidebarCollapsed ? 'justify-center px-0' : 'justify-between pl-6 pr-4'
           }`}
           style={{
@@ -352,7 +340,7 @@ const Sidebar = ({
           }}
         >
           <div
-            className={`font-bold text-xl tracking-tight text-white transition-all duration-200 flex items-center gap-2 ${
+            className={`font-bold text-xl tracking-tight text-[var(--color-text-primary)] transition-all duration-200 flex items-center gap-2 ${
               isSidebarCollapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100 w-auto'
             }`}
           >
@@ -363,7 +351,7 @@ const Sidebar = ({
               variant="ghost"
               size="icon"
               onClick={toggleSidebarCollapsed}
-              className="text-neutral-500 hover:text-white hover:bg-neutral-800"
+              className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-hover)]"
             >
               {isSidebarCollapsed ? <Menu size={20} /> : <ChevronLeft size={20} />}
             </Button>
@@ -383,7 +371,9 @@ const Sidebar = ({
 
               return (
                 <React.Fragment key={tab.id}>
-                  {showSeparator && <div className="my-2 mx-3 border-t border-neutral-800" />}
+                  {showSeparator && (
+                    <div className="my-2 mx-3 border-t border-[var(--color-border)]" />
+                  )}
                   <SidebarItem
                     icon={tab.icon}
                     label={tab.label}
@@ -400,7 +390,7 @@ const Sidebar = ({
 
         {/* Bottom Profile Card */}
         {selectedAccount && showProfileCard && (
-          <div className="border-t border-neutral-800 shrink-0 bg-[#111111] relative">
+          <div className="border-t border-[var(--color-border)] shrink-0 bg-[var(--color-surface-strong)] relative">
             <ProfileCard
               account={selectedAccount}
               isCollapsed={isSidebarCollapsed}
@@ -423,7 +413,7 @@ const Sidebar = ({
                   width: '4px'
                 }}
               >
-                <div className="absolute inset-0 hover:bg-neutral-600/50 transition-colors" />
+                <div className="absolute inset-0 hover:bg-[var(--color-border-subtle)] transition-colors" />
               </div>
             </TooltipTrigger>
             <TooltipContent>Drag to resize</TooltipContent>

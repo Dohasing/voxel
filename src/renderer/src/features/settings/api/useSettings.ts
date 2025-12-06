@@ -19,6 +19,7 @@ const DEFAULT_SETTINGS: Settings = {
   allowMultipleInstances: false,
   defaultInstallationPath: null,
   accentColor: DEFAULT_ACCENT_COLOR,
+  theme: 'system',
   showSidebarProfileCard: true,
   sidebarTabOrder: DEFAULT_SIDEBAR_TAB_ORDER,
   sidebarHiddenTabs: [],
@@ -40,6 +41,7 @@ export function useSettings() {
         ...DEFAULT_SETTINGS,
         ...data,
         accentColor: data?.accentColor || DEFAULT_ACCENT_COLOR,
+        theme: (data?.theme as Settings['theme']) || 'system',
         showSidebarProfileCard: data?.showSidebarProfileCard ?? true,
         sidebarTabOrder: sanitizeSidebarOrder(data?.sidebarTabOrder),
         sidebarHiddenTabs: sanitizeSidebarHidden(data?.sidebarHiddenTabs)

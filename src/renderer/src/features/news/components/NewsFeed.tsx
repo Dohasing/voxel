@@ -6,12 +6,18 @@ import { LoadingSpinnerFullPage } from '../../../components/UI/feedback/LoadingS
 export const NewsFeed: React.FC = () => {
   const { data: news, isLoading, error } = useNews()
 
+  const Header = () => (
+    <div className="sticky top-0 z-10 backdrop-blur-md border-b border-[var(--color-border)] bg-[var(--color-surface-strong)] px-6 py-4">
+      <h2 className="text-2xl font-bold text-[var(--color-text-primary)] tracking-tight">
+        News Feed
+      </h2>
+    </div>
+  )
+
   if (isLoading) {
     return (
       <div className="flex flex-col w-full h-full">
-        <div className="sticky top-0 z-10 bg-neutral-950/80 backdrop-blur-md border-b border-neutral-800 px-6 py-4">
-          <h2 className="text-2xl font-bold text-white tracking-tight">News Feed</h2>
-        </div>
+        <Header />
         <div className="flex-1 flex items-center justify-center">
           <LoadingSpinnerFullPage label="Loading news..." />
         </div>
@@ -22,9 +28,7 @@ export const NewsFeed: React.FC = () => {
   if (error) {
     return (
       <div className="flex flex-col w-full h-full">
-        <div className="sticky top-0 z-10 bg-neutral-950/80 backdrop-blur-md border-b border-neutral-800 px-6 py-4">
-          <h2 className="text-2xl font-bold text-white tracking-tight">News Feed</h2>
-        </div>
+        <Header />
         <div className="flex-1 flex items-center justify-center text-red-400">
           Failed to load news feed. Please try again later.
         </div>
@@ -34,10 +38,8 @@ export const NewsFeed: React.FC = () => {
 
   return (
     <div className="flex flex-col w-full h-full">
-      <div className="sticky top-0 z-10 bg-neutral-950/80 backdrop-blur-md border-b border-neutral-800 px-6 py-4">
-        <h2 className="text-2xl font-bold text-white tracking-tight">News Feed</h2>
-      </div>
-      
+      <Header />
+
       <div className="p-6 max-w-5xl mx-auto w-full">
         <div className="flex flex-col gap-6">
           {news?.map((post) => (

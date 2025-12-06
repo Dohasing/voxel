@@ -67,12 +67,15 @@ const GroupItem = ({ group, role, thumbnail, isSelected, isPending, onClick }: G
     >
       <button
         onClick={onClick}
-        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-left group ${
+        className={`relative w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-left group overflow-hidden ${
           isSelected
-            ? 'bg-[rgba(var(--accent-color-rgb),0.15)] border border-[rgba(var(--accent-color-rgb),0.3)]'
-            : 'hover:bg-neutral-800/60 border border-transparent'
+            ? 'bg-[var(--color-surface-hover)] border border-[var(--color-border-strong)] shadow-[0_10px_30px_rgba(0,0,0,0.28)]'
+            : 'hover:bg-[var(--color-surface-hover)] border border-transparent'
         }`}
       >
+        {isSelected && (
+          <span className="absolute left-0 top-2 bottom-2 w-[3px] rounded-full bg-[var(--accent-color)]" />
+        )}
         <Avatar className="w-10 h-10 rounded-lg border border-neutral-700 shrink-0">
           <AvatarImage src={thumbnail} alt={group.name} />
           <AvatarFallback className="rounded-lg bg-neutral-800 text-neutral-400">
@@ -83,7 +86,9 @@ const GroupItem = ({ group, role, thumbnail, isSelected, isPending, onClick }: G
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5">
             <span
-              className={`font-medium truncate text-sm ${isSelected ? 'text-white' : 'text-neutral-200'}`}
+              className={`font-medium truncate text-sm ${
+                isSelected ? 'text-[var(--color-text-primary)]' : 'text-neutral-200'
+              }`}
             >
               {group.name}
             </span>
@@ -108,7 +113,11 @@ const GroupItem = ({ group, role, thumbnail, isSelected, isPending, onClick }: G
 
         <ChevronRight
           size={16}
-          className={`shrink-0 transition-colors ${isSelected ? 'text-[var(--accent-color)]' : 'text-neutral-600 group-hover:text-neutral-400'}`}
+          className={`shrink-0 transition-colors ${
+            isSelected
+              ? 'text-[var(--color-text-muted)]'
+              : 'text-neutral-600 group-hover:text-neutral-400'
+          }`}
         />
       </button>
     </motion.div>
@@ -302,11 +311,11 @@ const GroupsTab = ({ selectedAccount }: GroupsTabProps) => {
         ) : (
           <div className="flex-1 flex min-h-0">
             {/* Sidebar */}
-              <div
-                ref={sidebarRef}
-                className={`relative border-r border-neutral-800 flex flex-col shrink-0 bg-neutral-900/30 ${!isResizing ? 'transition-[width] duration-150 ease-in-out' : ''}`}
-                style={{ width: `${sidebarWidth}px` }}
-              >
+            <div
+              ref={sidebarRef}
+              className={`relative border-r border-neutral-800 flex flex-col shrink-0 bg-neutral-900/30 ${!isResizing ? 'transition-[width] duration-150 ease-in-out' : ''}`}
+              style={{ width: `${sidebarWidth}px` }}
+            >
               {/* Sidebar Tabs */}
               <Tabs
                 tabs={[

@@ -151,7 +151,7 @@ const InstallTab: React.FC = () => {
           detected.binaryType === BinaryType.MacStudio
             ? 'Roblox Studio'
             : 'Roblox Player',
-        binaryType: detected.binaryType,
+        binaryType: detected.binaryType as BinaryType,
         version: detected.version,
         channel: 'Default',
         path: detected.path,
@@ -373,13 +373,13 @@ const InstallTab: React.FC = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
-        className="flex flex-col h-full bg-neutral-950 overflow-hidden"
+        className="flex flex-col h-full bg-[var(--color-app-bg)] overflow-hidden text-[var(--color-text-secondary)]"
       >
         {/* Header */}
-        <div className="shrink-0 h-[72px] bg-neutral-950 border-b border-neutral-800 flex items-center justify-between px-6 z-20">
+        <div className="shrink-0 h-[72px] bg-[var(--color-surface)] border-b border-[var(--color-border)] flex items-center justify-between px-6 z-20">
           <div className="flex items-center gap-4">
-            <h1 className="text-xl font-bold text-white">Installations</h1>
-            <span className="flex items-center justify-center px-2.5 py-0.5 rounded-full bg-neutral-900 border border-neutral-800 text-xs font-semibold tracking-tight text-neutral-400">
+            <h1 className="text-xl font-bold text-[var(--color-text-primary)]">Installations</h1>
+            <span className="flex items-center justify-center px-2.5 py-0.5 rounded-full bg-[var(--color-surface-muted)] border border-[var(--color-border)] text-xs font-semibold tracking-tight text-[var(--color-text-muted)]">
               {totalInstallationsCount}
             </span>
           </div>
@@ -403,7 +403,7 @@ const InstallTab: React.FC = () => {
                       showNotification('Failed to refresh', 'error')
                     }
                   }}
-                  className="pressable flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-xs font-medium border bg-neutral-900 text-neutral-400 border-neutral-800 hover:border-neutral-700"
+                  className="pressable flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-xs font-medium border bg-[var(--color-surface-muted)] text-[var(--color-text-muted)] border-[var(--color-border)] hover:border-[var(--color-border-strong)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-hover)]"
                 >
                   <RefreshCw size={14} />
                   Refresh
@@ -445,10 +445,10 @@ const InstallTab: React.FC = () => {
                 return (
                   <motion.div
                     key={install.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
                     transition={{ duration: 0.3, delay: index * 0.05 }}
-                    className="group bg-neutral-900/50 border border-neutral-800 rounded-xl overflow-hidden hover:border-neutral-700 hover:bg-neutral-900 transition-all"
+                    className="group bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl overflow-hidden shadow-sm transition-all duration-200 hover:bg-[var(--color-surface-strong)] hover:border-[var(--color-border-strong)] hover:shadow-[var(--shadow-lg)]"
                   >
                     {/* Card Header */}
                     <div className="p-4 pb-3">
@@ -494,7 +494,7 @@ const InstallTab: React.FC = () => {
                               install: install
                             })
                           }}
-                          className="pressable p-1.5 rounded-lg text-neutral-500 hover:text-white hover:bg-neutral-800 transition-colors opacity-0 group-hover:opacity-100"
+                          className="pressable p-1.5 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-hover)] transition-colors opacity-0 group-hover:opacity-100"
                         >
                           <MoreHorizontal size={16} />
                         </button>
@@ -550,7 +550,7 @@ const InstallTab: React.FC = () => {
                       <button
                         onClick={() => handleLaunch(install)}
                         disabled={isThisVerifying}
-                        className="pressable w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-white text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="pressable w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-[var(--color-surface-strong)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm font-medium transition-all hover:bg-[var(--color-surface-hover)] hover:border-[var(--color-border-strong)] hover:shadow-[var(--shadow-lg)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-surface)] disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <Play size={14} fill="currentColor" />
                         Launch
@@ -581,7 +581,7 @@ const InstallTab: React.FC = () => {
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
                   placeholder="e.g. My Custom Version"
-                  className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-[var(--accent-color)] focus:border-[var(--accent-color)] transition-all"
+                  className="w-full bg-[var(--color-surface-muted)] border border-[var(--color-border)] rounded-lg px-4 py-2.5 text-[var(--color-text-primary)] text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-app-bg)] transition-all placeholder:text-[var(--color-text-muted)] hover:border-[var(--color-border-strong)]"
                 />
               </div>
 
@@ -632,7 +632,7 @@ const InstallTab: React.FC = () => {
                     value={newVersion}
                     onChange={setNewVersion}
                     placeholder={availableVersions.length > 0 ? 'Latest' : 'Loading...'}
-                    buttonClassName="bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2.5 text-white text-sm"
+                    buttonClassName="bg-[var(--color-surface-muted)] border border-[var(--color-border)] hover:border-[var(--color-border-strong)] rounded-lg px-4 py-2.5 text-[var(--color-text-primary)] text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-app-bg)]"
                   />
                 </div>
                 <div className="space-y-2">
@@ -642,7 +642,7 @@ const InstallTab: React.FC = () => {
                     value={newChannel}
                     onChange={(e) => setNewChannel(e.target.value)}
                     placeholder="live"
-                    className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-[var(--accent-color)] focus:border-[var(--accent-color)] transition-all placeholder-neutral-600"
+                    className="w-full bg-[var(--color-surface-muted)] border border-[var(--color-border)] rounded-lg px-4 py-2.5 text-[var(--color-text-primary)] text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-app-bg)] transition-all placeholder:text-[var(--color-text-muted)] hover:border-[var(--color-border-strong)]"
                   />
                 </div>
               </div>

@@ -133,14 +133,14 @@ export const CatalogItemCard = ({
       transition={{ duration: 0.3, delay: Math.min(index * 0.02, 0.3) }}
       onClick={onClick}
       onContextMenu={handleContextMenu}
-      className="group relative flex flex-col bg-neutral-900/40 border border-neutral-800/50 rounded-xl overflow-hidden cursor-pointer hover:bg-neutral-800/60 hover:border-neutral-700 hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
+      className="group relative flex flex-col bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl overflow-hidden cursor-pointer hover:bg-[var(--color-surface-hover)] hover:border-[var(--color-border-strong)] hover:shadow-lg hover:-translate-y-1 transition-all duration-300 text-[var(--color-text-secondary)]"
     >
       {/* Image Container */}
       <div
-        className={`w-full relative overflow-hidden bg-neutral-800/40 ${isCompact ? 'aspect-square p-0' : 'aspect-square p-2'}`}
+        className={`w-full relative overflow-hidden bg-[var(--color-surface-muted)] ${isCompact ? 'aspect-square p-0' : 'aspect-square p-2'}`}
       >
         <div
-          className={`w-full h-full relative overflow-hidden bg-neutral-800/30 ${isCompact ? '' : 'rounded-lg'}`}
+          className={`w-full h-full relative overflow-hidden bg-[var(--color-surface-hover)] ${isCompact ? '' : 'rounded-lg'}`}
         >
           {/* Tags  */}
           <div
@@ -246,7 +246,9 @@ export const CatalogItemCard = ({
 
           {thumbnailUrl ? (
             <>
-              {!imageLoaded && <div className="absolute inset-0 bg-neutral-700/30 animate-pulse" />}
+              {!imageLoaded && (
+                <div className="absolute inset-0 bg-[var(--color-border-subtle)] animate-pulse" />
+              )}
               <img
                 src={thumbnailUrl}
                 alt={item.name}
@@ -258,7 +260,7 @@ export const CatalogItemCard = ({
               />
             </>
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-neutral-700">
+            <div className="w-full h-full flex items-center justify-center text-[var(--color-text-muted)]">
               <Package size={32} />
             </div>
           )}
@@ -267,19 +269,25 @@ export const CatalogItemCard = ({
 
       {/* Item Info */}
       <div
-        className={`flex flex-col gap-1.5 border-t border-neutral-800/50 bg-neutral-900/30 ${isCompact ? 'p-2' : 'p-3'}`}
+        className={`flex flex-col gap-1.5 border-t border-[var(--color-border-subtle)] bg-[var(--color-surface-muted)] ${isCompact ? 'p-2' : 'p-3'}`}
       >
         {isNameTruncated ? (
           <Tooltip>
             <TooltipTrigger asChild>
-              <h3 ref={nameRef} className="font-medium text-sm text-neutral-200 truncate">
+              <h3
+                ref={nameRef}
+                className="font-medium text-sm text-[var(--color-text-primary)] truncate"
+              >
                 {item.name}
               </h3>
             </TooltipTrigger>
             <TooltipContent>{item.name}</TooltipContent>
           </Tooltip>
         ) : (
-          <h3 ref={nameRef} className="font-medium text-sm text-neutral-200 truncate">
+          <h3
+            ref={nameRef}
+            className="font-medium text-sm text-[var(--color-text-primary)] truncate"
+          >
             {item.name}
           </h3>
         )}
@@ -292,11 +300,13 @@ export const CatalogItemCard = ({
                 <div
                   ref={priceRef}
                   className={`flex items-center gap-1 font-bold text-sm ${
-                    isOffSale ? 'text-neutral-500' : 'text-white'
+                    isOffSale
+                      ? 'text-[var(--color-text-muted)]'
+                      : 'text-[var(--color-text-primary)]'
                   }`}
                 >
                   {!isOffSale && displayPrice !== 'Free' && (
-                    <RobuxIcon className="w-4 h-4 text-white" />
+                    <RobuxIcon className="w-4 h-4 text-[var(--color-text-primary)]" />
                   )}
                   <span className={displayPrice === 'Free' ? 'text-emerald-400' : ''}>
                     {displayPrice}
@@ -322,11 +332,11 @@ export const CatalogItemCard = ({
             <div
               ref={priceRef}
               className={`flex items-center gap-1 font-bold text-sm ${
-                isOffSale ? 'text-neutral-500' : 'text-white'
+                isOffSale ? 'text-[var(--color-text-muted)]' : 'text-[var(--color-text-primary)]'
               }`}
             >
               {!isOffSale && displayPrice !== 'Free' && (
-                <RobuxIcon className="w-4 h-4 text-white" />
+                <RobuxIcon className="w-4 h-4 text-[var(--color-text-primary)]" />
               )}
               <span className={displayPrice === 'Free' ? 'text-emerald-400' : ''}>
                 {displayPrice}
@@ -337,7 +347,7 @@ export const CatalogItemCard = ({
           {/* Resale Price tooltip or indicator */}
           {hasResale && !isLimited && (
             <div
-              className="flex items-center gap-1 text-xs text-neutral-500"
+              className="flex items-center gap-1 text-xs text-[var(--color-text-muted)]"
               title="Resale available"
             >
               <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
@@ -346,7 +356,7 @@ export const CatalogItemCard = ({
         </div>
 
         {!isCompact && (
-          <div className="flex items-center justify-between text-[11px] text-neutral-500">
+          <div className="flex items-center justify-between text-[11px] text-[var(--color-text-muted)]">
             {/* Creator */}
             <div className="flex items-center gap-1 truncate max-w-[70%]">
               {item.creatorTargetId && onCreatorClick ? (
@@ -357,7 +367,7 @@ export const CatalogItemCard = ({
                         ref={creatorRef as React.RefObject<HTMLButtonElement>}
                         type="button"
                         onClick={handleCreatorClick}
-                        className={`truncate text-left hover:text-white focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-neutral-600 rounded-sm transition-colors text-xs ${item.creatorHasVerifiedBadge ? 'text-[#3385ff] font-bold' : ''}`}
+                        className={`truncate text-left hover:text-[var(--color-text-primary)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--focus-ring)] rounded-sm transition-colors text-xs ${item.creatorHasVerifiedBadge ? 'text-[var(--accent-color)] font-bold' : 'text-[var(--color-text-muted)]'}`}
                       >
                         {item.creatorName}
                       </button>
@@ -369,7 +379,7 @@ export const CatalogItemCard = ({
                     ref={creatorRef as React.RefObject<HTMLButtonElement>}
                     type="button"
                     onClick={handleCreatorClick}
-                    className={`truncate text-left hover:text-white focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-neutral-600 rounded-sm transition-colors text-xs ${item.creatorHasVerifiedBadge ? 'text-[#3385ff] font-bold' : ''}`}
+                    className={`truncate text-left hover:text-[var(--color-text-primary)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--focus-ring)] rounded-sm transition-colors text-xs ${item.creatorHasVerifiedBadge ? 'text-[var(--accent-color)] font-bold' : 'text-[var(--color-text-muted)]'}`}
                   >
                     {item.creatorName}
                   </button>
@@ -379,7 +389,7 @@ export const CatalogItemCard = ({
                   <TooltipTrigger asChild>
                     <span
                       ref={creatorRef as React.RefObject<HTMLSpanElement>}
-                      className={`truncate text-xs ${item.creatorHasVerifiedBadge ? 'text-[#3385ff] font-bold' : ''}`}
+                      className={`truncate text-xs ${item.creatorHasVerifiedBadge ? 'text-[var(--accent-color)] font-bold' : 'text-[var(--color-text-muted)]'}`}
                     >
                       {item.creatorName}
                     </span>
@@ -389,7 +399,7 @@ export const CatalogItemCard = ({
               ) : (
                 <span
                   ref={creatorRef as React.RefObject<HTMLSpanElement>}
-                  className={`truncate text-xs ${item.creatorHasVerifiedBadge ? 'text-[#3385ff] font-bold' : ''}`}
+                  className={`truncate text-xs ${item.creatorHasVerifiedBadge ? 'text-[var(--accent-color)] font-bold' : 'text-[var(--color-text-muted)]'}`}
                 >
                   {item.creatorName}
                 </span>
@@ -402,8 +412,10 @@ export const CatalogItemCard = ({
             {/* Favorite Count */}
             {item.favoriteCount !== undefined && item.favoriteCount > 0 && (
               <div className="flex items-center gap-1.5 shrink-0">
-                <Star size={16} className="text-neutral-600" />
-                <span className="text-xs font-mono">{formatNumber(item.favoriteCount)}</span>
+                <Star size={16} className="text-[var(--color-text-muted)]" />
+                <span className="text-xs font-mono text-[var(--color-text-secondary)]">
+                  {formatNumber(item.favoriteCount)}
+                </span>
               </div>
             )}
           </div>

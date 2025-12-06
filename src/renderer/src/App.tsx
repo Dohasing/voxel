@@ -58,6 +58,7 @@ import {
   useNotificationTrayStore,
   useNotifyServerLocation
 } from './features/system/stores/useNotificationTrayStore'
+import { useTheme } from './theme/ThemeProvider'
 
 import {
   useActiveTab,
@@ -219,6 +220,12 @@ const App: React.FC = () => {
   useFriendPresenceNotifications(friendsData, !!selectedAccount, selectedAccount?.id)
 
   const [quickProfileUserId, setQuickProfileUserId] = useState<string | null>(null)
+
+  const { setTheme } = useTheme()
+
+  useEffect(() => {
+    setTheme(settings.theme ?? 'system')
+  }, [settings.theme, setTheme])
 
   useEffect(() => {
     const isSidebarTab = SIDEBAR_TAB_IDS.includes(activeTab)
@@ -575,7 +582,7 @@ const App: React.FC = () => {
 
   if (isLoadingAccounts || isLoadingSettings) {
     return (
-      <div className="flex h-screen w-full bg-black text-neutral-300 font-sans">
+      <div className="flex h-screen w-full bg-[var(--color-app-bg)] text-[var(--color-text-muted)] font-sans">
         <LoadingSpinnerFullPage label="Loading..." />
       </div>
     )
@@ -584,7 +591,7 @@ const App: React.FC = () => {
   return (
     <div
       id="app-container"
-      className="flex h-screen w-full bg-black text-neutral-300 font-sans overflow-hidden overflow-x-hidden selection:bg-neutral-800 selection:text-white"
+      className="flex h-screen w-full bg-[var(--color-app-bg)] text-[var(--color-text-muted)] font-sans overflow-hidden overflow-x-hidden selection:bg-[var(--accent-color-soft)] selection:text-[var(--color-text-primary)]"
     >
       {/* Sidebar */}
       <Sidebar
@@ -599,10 +606,10 @@ const App: React.FC = () => {
       />
 
       {/* Main Content Wrapper */}
-      <main className="flex-1 flex flex-col min-w-0 bg-neutral-950 h-full relative overflow-hidden">
+      <main className="flex-1 flex flex-col min-w-0 bg-[var(--color-surface)] h-full relative overflow-hidden text-[var(--color-text-secondary)]">
         {/* Title Bar spacer */}
         <div
-          className="h-[45px] bg-neutral-950 flex-shrink-0 w-full border-b border-neutral-800 flex items-center justify-end"
+          className="h-[45px] bg-[var(--color-surface)] flex-shrink-0 w-full border-b border-[var(--color-border)] flex items-center justify-end"
           style={
             {
               WebkitAppRegion: 'drag',
@@ -620,13 +627,13 @@ const App: React.FC = () => {
                 e.stopPropagation()
                 openCommandPalette()
               }}
-              className="relative p-2 rounded-md transition-all hover:bg-neutral-800/50 text-neutral-400 hover:text-neutral-200"
+              className="relative p-2 rounded-md transition-all hover:bg-[var(--color-surface-hover)] text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
               title="Search (Ctrl+K)"
             >
               <Search className="h-4 w-4" />
             </button>
             <NotificationTray onOpenUserProfile={handleCommandPaletteViewProfile} />
-            {!isMac && <div className="w-px h-5 bg-neutral-700 mx-2" />}
+            {!isMac && <div className="w-px h-5 bg-[var(--color-border)] mx-2" />}
           </div>
         </div>
         {/* Tab panels - conditional rendering for performance */}
@@ -643,7 +650,7 @@ const App: React.FC = () => {
             (selectedAccount ? (
               <ProfileTab account={selectedAccount} />
             ) : (
-              <div className="flex flex-col items-center justify-center h-full text-neutral-500">
+              <div className="flex flex-col items-center justify-center h-full text-[var(--color-text-muted)]">
                 <p>Select an account to view profile</p>
               </div>
             ))}

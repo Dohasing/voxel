@@ -50,7 +50,7 @@ export const Tabs: React.FC<TabsProps> = ({
   const activeIndex = visibleTabs.findIndex((tab) => tab.id === activeTab)
 
   return (
-    <div className={cn('flex border-b border-neutral-800 shrink-0', className)}>
+    <div className={cn('flex border-b border-[var(--color-border)] shrink-0', className)}>
       <div className="relative flex flex-1">
         {/* Animated sliding indicator */}
         <motion.div
@@ -72,8 +72,10 @@ export const Tabs: React.FC<TabsProps> = ({
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
               className={cn(
-                'flex-1 py-3 text-sm font-medium transition-colors flex items-center justify-center gap-3 relative z-10 hover:bg-neutral-900/50 active:bg-neutral-900',
-                isActive ? 'bg-neutral-900 text-white' : 'text-neutral-500 hover:text-neutral-300',
+                'flex-1 py-3 text-sm font-medium transition-colors flex items-center justify-center gap-3 relative z-10 hover:bg-[var(--color-surface-hover)] active:bg-[var(--color-surface-muted)]',
+                isActive
+                  ? 'bg-[var(--color-surface-muted)] text-[var(--color-text-primary)]'
+                  : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]',
                 tabClassName
               )}
             >

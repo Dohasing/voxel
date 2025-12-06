@@ -110,13 +110,16 @@ export interface GameServer {
   region: string
 }
 
-export const DEFAULT_ACCENT_COLOR = '#ffffff'
+export const DEFAULT_ACCENT_COLOR = '#1e66f5'
+
+export type ThemePreference = 'system' | 'dark' | 'light'
 
 export interface Settings {
   primaryAccountId: string | null
   allowMultipleInstances: boolean
   defaultInstallationPath?: string | null
   accentColor: string
+  theme: ThemePreference
   showSidebarProfileCard: boolean
   sidebarTabOrder: TabId[]
   sidebarHiddenTabs: TabId[]

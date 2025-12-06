@@ -371,9 +371,9 @@ const LogsTab: React.FC = () => {
   }, [selectedLogMeta?.universeId])
 
   return (
-    <div className="flex flex-col h-full bg-neutral-950">
-      <div className="shrink-0 h-[72px] bg-neutral-950 border-b border-neutral-800 flex items-center justify-between px-6 z-20">
-        <h1 className="text-xl font-bold text-white">Logs</h1>
+    <div className="flex flex-col h-full bg-[var(--color-app-bg)] text-[var(--color-text-secondary)]">
+      <div className="shrink-0 h-[72px] bg-[var(--color-surface)] border-b border-[var(--color-border)] flex items-center justify-between px-6 z-20">
+        <h1 className="text-xl font-bold text-[var(--color-text-primary)]">Logs</h1>
         <div className="flex items-center gap-3">
           <Tooltip>
             <TooltipTrigger asChild>
@@ -419,14 +419,14 @@ const LogsTab: React.FC = () => {
       </div>
 
       <div className="flex-1 flex overflow-hidden">
-        <div className="w-80 bg-[#111111] border-r border-neutral-800 flex flex-col shrink-0">
+        <div className="w-80 bg-[var(--color-surface-strong)] border-r border-[var(--color-border)] flex flex-col shrink-0">
           <div className="flex-1 overflow-y-auto scrollbar-thin p-4 space-y-6">
             {isLoading ? (
               <div className="text-center py-10 text-neutral-500 text-sm">Loading logs...</div>
             ) : groupedLogs.length > 0 ? (
               groupedLogs.map((group) => (
                 <div key={group.label}>
-                  <h3 className="text-xs font-bold text-neutral-500 uppercase tracking-wider mb-3 px-2 flex items-center gap-2">
+                  <h3 className="text-xs font-bold text-[var(--color-text-muted)] uppercase tracking-wider mb-3 px-2 flex items-center gap-2">
                     <Calendar size={12} />
                     {group.label}
                   </h3>
@@ -442,28 +442,35 @@ const LogsTab: React.FC = () => {
                           onClick={() => setSelectedLogId(log.id)}
                           onContextMenu={(e) => handleContextMenu(e, log.id)}
                           whileTap={{ scale: 0.97 }}
-                          className={`pressable w-full flex items-start gap-3 p-3 rounded-lg transition-colors text-left group ${
+                          className={`pressable relative w-full flex items-start gap-3 p-3 rounded-lg transition-all text-left group overflow-hidden ${
                             isSelected
-                              ? 'bg-neutral-800 shadow-sm border border-neutral-700'
-                              : 'hover:bg-neutral-800/50 border border-transparent'
+                              ? 'bg-[var(--color-surface-hover)] border border-[var(--color-border-strong)] shadow-[0_10px_30px_rgba(0,0,0,0.28)]'
+                              : 'hover:bg-[var(--color-surface-hover)] border border-transparent'
                           }`}
                         >
+                          {isSelected && (
+                            <span className="absolute left-0 top-2 bottom-2 w-[3px] rounded-full bg-[var(--accent-color)]" />
+                          )}
                           <div
-                            className={`mt-0.5 ${isSelected ? 'text-white' : 'text-neutral-500 group-hover:text-neutral-400'}`}
+                            className={`mt-0.5 ${
+                              isSelected
+                                ? 'text-[var(--color-text-primary)]'
+                                : 'text-[var(--color-text-muted)] group-hover:text-[var(--color-text-secondary)]'
+                            }`}
                           >
                             <FileText size={18} />
                           </div>
                           <div className="min-w-0 flex-1">
                             <div
-                              className={`text-sm font-medium truncate ${isSelected ? 'text-white' : 'text-neutral-300'}`}
+                              className={`text-sm font-medium truncate ${isSelected ? 'text-[var(--color-text-primary)]' : 'text-[var(--color-text-secondary)]'}`}
                             >
                               {log.filename}
                             </div>
                             <div className="flex items-center justify-between mt-1.5">
-                              <span className="text-xs text-neutral-500 flex items-center gap-1">
+                              <span className="text-xs text-[var(--color-text-muted)] flex items-center gap-1">
                                 <Clock3 size={10} /> {log.createdAt}
                               </span>
-                              <span className="text-[10px] text-neutral-400 font-mono bg-neutral-900 px-1.5 py-0.5 rounded border border-neutral-800/50">
+                              <span className="text-[10px] text-[var(--color-text-muted)] font-mono bg-[var(--color-surface-muted)] px-1.5 py-0.5 rounded border border-[var(--color-border-subtle)]">
                                 {log.formattedSize}
                               </span>
                             </div>
@@ -480,7 +487,7 @@ const LogsTab: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex-1 flex flex-col bg-neutral-950 min-w-0">
+        <div className="flex-1 flex flex-col bg-[var(--color-app-bg)] min-w-0">
           {selectedLog ? (
             <>
               <div className="shrink-0 grid grid-cols-2 xl:grid-cols-3 gap-4 p-6 border-b border-neutral-800 bg-neutral-900/20">
@@ -611,7 +618,7 @@ const LogsTab: React.FC = () => {
                     itemContent={(idx, entry) => (
                       <div
                         key={idx}
-                        className="flex items-start gap-1.5 pr-2 py-1 hover:bg-neutral-900 rounded transition-colors group/line"
+                        className="flex items-start gap-1.5 py-1 hover:bg-neutral-900 rounded transition-colors group/line"
                       >
                         <span className="text-neutral-600 shrink-0 select-none w-[5px] text-right">
                           {entry.timestamp}

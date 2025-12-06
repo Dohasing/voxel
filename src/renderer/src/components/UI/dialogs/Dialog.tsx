@@ -154,7 +154,7 @@ const DialogContent = React.forwardRef<HTMLDivElement, HTMLMotionProps<'div'>>(
           backfaceVisibility: 'hidden'
         }}
         className={cn(
-          'w-full max-w-md bg-neutral-950 border border-neutral-800 rounded-xl shadow-2xl overflow-hidden ring-1 ring-[var(--accent-color-ring)]',
+          'w-full max-w-md bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl shadow-2xl overflow-hidden ring-1 ring-[var(--accent-color-ring)] text-[var(--color-text-secondary)]',
           className
         )}
         onContextMenu={(e) => {
@@ -175,7 +175,7 @@ const DialogHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLD
     <div
       ref={ref}
       className={cn(
-        'flex items-center justify-between p-4 border-b border-neutral-800 bg-neutral-950',
+        'flex items-center justify-between p-4 border-b border-[var(--color-border)] bg-[var(--color-surface-strong)]',
         className
       )}
       {...props}
@@ -186,7 +186,11 @@ DialogHeader.displayName = 'DialogHeader'
 
 const DialogTitle = React.forwardRef<HTMLHeadingElement, React.HTMLAttributes<HTMLHeadingElement>>(
   ({ className, ...props }, ref) => (
-    <h3 ref={ref} className={cn('text-xl font-semibold text-white pl-2', className)} {...props} />
+    <h3
+      ref={ref}
+      className={cn('text-xl font-semibold text-[var(--color-text-primary)] pl-2', className)}
+      {...props}
+    />
   )
 )
 DialogTitle.displayName = 'DialogTitle'
@@ -204,7 +208,7 @@ const DialogClose = React.forwardRef<
         onClose()
       }}
       className={cn(
-        'pressable p-2.5 text-neutral-400 hover:text-white hover:bg-neutral-800 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed',
+        'pressable p-2.5 text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-hover)] rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed',
         className
       )}
       {...props}

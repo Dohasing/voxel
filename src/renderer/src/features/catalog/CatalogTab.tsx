@@ -320,9 +320,12 @@ const CatalogTab = ({ onItemSelect, onCreatorSelect, cookie }: CatalogTabProps) 
   }, [minPrice, maxPrice])
 
   // Apply creator filter
-  const handleApplyCreatorFilter = useCallback(() => {
-    setAppliedCreatorName(creatorName)
-  }, [creatorName])
+  const handleApplyCreatorFilter = useCallback(
+    (name: string) => {
+      setAppliedCreatorName(name)
+    },
+    [setAppliedCreatorName]
+  )
 
   // Clear all filters
   const handleClearFilters = useCallback(() => {

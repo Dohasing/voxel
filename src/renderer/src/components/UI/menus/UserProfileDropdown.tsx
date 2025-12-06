@@ -37,7 +37,7 @@ const UserProfileDropdown: React.FC<UserProfileDropdownProps> = ({ account, onSi
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="pressable flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-neutral-800/50 transition-colors"
+        className="pressable flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-[var(--color-surface-hover)] transition-colors border border-transparent"
       >
         <Avatar className="h-7 w-7">
           <AvatarImage src={account.avatarUrl} alt={account.displayName} />
@@ -62,11 +62,13 @@ const UserProfileDropdown: React.FC<UserProfileDropdownProps> = ({ account, onSi
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -4 }}
             transition={{ duration: 0.1 }}
-            className="absolute top-full right-0 mt-1 w-48 bg-neutral-900 border border-neutral-800 rounded-lg shadow-xl z-[100] py-1 overflow-hidden"
+            className="absolute top-full right-0 mt-1 w-48 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg shadow-xl z-[100] py-1 overflow-hidden"
           >
-            <div className="px-3 py-2 border-b border-neutral-800">
-              <p className="text-sm font-medium text-neutral-200 truncate">{account.displayName}</p>
-              <p className="text-xs text-neutral-500 truncate">@{account.username}</p>
+            <div className="px-3 py-2 border-b border-[var(--color-border)]">
+              <p className="text-sm font-medium text-[var(--color-text-primary)] truncate">
+                {account.displayName}
+              </p>
+              <p className="text-xs text-[var(--color-text-muted)] truncate">@{account.username}</p>
             </div>
 
             <button

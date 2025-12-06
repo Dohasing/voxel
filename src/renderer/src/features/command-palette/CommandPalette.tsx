@@ -160,9 +160,16 @@ const categoryOrder = [
   'catalog'
 ]
 
-const SELECTED_BG = 'rgba(255,255,255,0.04)'
-// Use rgba(…,0) instead of transparent so framer-motion can interpolate.
-const UNSELECTED_BG = 'rgba(255,255,255,0)'
+// Theme-aware surfaces that animate cleanly with framer-motion
+const SELECTED_BG = 'color-mix(in srgb, var(--color-text-primary) 10%, transparent)'
+const UNSELECTED_BG = 'color-mix(in srgb, var(--color-text-primary) 0%, transparent)'
+const PANEL_BACKDROP = 'color-mix(in srgb, var(--color-app-bg) 82%, transparent)'
+const STRIP_BG = 'var(--color-surface)'
+const TILE_BG = 'color-mix(in srgb, var(--color-surface-muted) 90%, transparent)'
+const ICON_BASE_CLASSES =
+  'flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center transition-all duration-150'
+const ICON_UNSELECTED_CLASSES =
+  'bg-[var(--color-surface-muted)] text-[var(--color-text-muted)] group-hover:bg-[var(--color-surface-hover)] group-hover:text-[var(--color-text-primary)]'
 
 interface CatalogResultItemForAccessory {
   id: number
@@ -204,7 +211,7 @@ const UniversalLimitedRow = memo(
         <LimitedThumbnail
           assetId={result.id}
           name={result.name}
-          className="flex-shrink-0 w-9 h-9 rounded-lg ring-1 ring-white/5"
+          className="flex-shrink-0 w-9 h-9 rounded-lg ring-1 ring-[var(--color-border-subtle)]"
         />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
@@ -452,15 +459,16 @@ const UniversalPlayerRow = memo(
           <img
             src={result.avatarUrl}
             alt={result.displayName}
-            className="flex-shrink-0 w-9 h-9 rounded-full bg-neutral-800 ring-1 ring-white/5"
+            className="flex-shrink-0 w-9 h-9 rounded-full bg-[var(--color-surface-muted)] ring-1 ring-[var(--color-border-subtle)]"
           />
         ) : (
           <div
             className={cn(
-              'flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center transition-all duration-150',
+              ICON_BASE_CLASSES,
+              'rounded-full',
               isSelected
                 ? 'bg-[var(--accent-color)] text-[var(--accent-color-foreground)]'
-                : 'bg-neutral-800/80 text-neutral-400 group-hover:bg-neutral-800'
+                : ICON_UNSELECTED_CLASSES
             )}
           >
             <User size={16} strokeWidth={1.75} />
@@ -1016,8 +1024,8 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.12 }}
-      className="fixed inset-0 z-[100] flex items-start justify-center bg-black/80 backdrop-blur-md"
-      style={{ paddingTop: overlayPaddingTop }}
+      className="fixed inset-0 z-[100] flex items-start justify-center backdrop-blur-md"
+      style={{ paddingTop: overlayPaddingTop, backgroundColor: PANEL_BACKDROP }}
       onClick={(e) => {
         if (e.target === e.currentTarget) close()
       }}
@@ -1027,24 +1035,32 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.98, y: -5 }}
         transition={{ type: 'spring', stiffness: 500, damping: 35 }}
-        className="bg-neutral-950/95 backdrop-blur-xl border border-white/[0.08] rounded-2xl shadow-2xl shadow-black/50 overflow-hidden"
-        style={{ width: paletteWidth }}
+        className="backdrop-blur-xl rounded-2xl shadow-2xl overflow-hidden border"
+        style={{
+          width: paletteWidth,
+          backgroundColor: 'var(--color-surface-strong)',
+          borderColor: 'var(--color-border)',
+          boxShadow: 'var(--shadow-lg)'
+        }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center gap-3 px-4 py-3.5 border-b border-white/[0.06] bg-gradient-to-b from-white/[0.02] to-transparent">
+        <div
+          className="flex items-center gap-3 px-4 py-3.5 border-b"
+          style={{ borderColor: 'var(--color-border-subtle)', background: STRIP_BG }}
+        >
           {step === 'input' ? (
             <>
               <motion.button
                 onClick={goBack}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="p-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-neutral-400 hover:text-white transition-all duration-150"
+                className="p-1.5 rounded-lg border transition-all duration-150 text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] bg-[var(--color-surface-muted)] hover:bg-[var(--color-surface-hover)] border-[var(--color-border-subtle)]"
               >
                 <ArrowLeft size={16} strokeWidth={2} />
               </motion.button>
               <div className="flex-1 flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-white/[0.04] flex items-center justify-center text-neutral-400">
+                <div className="w-8 h-8 rounded-lg bg-[var(--color-surface-muted)] border border-[var(--color-border-subtle)] flex items-center justify-center text-[var(--color-text-muted)]">
                   {iconMap[activeCommand?.icon || 'sparkles']}
                 </div>
                 <div className="flex-1">
@@ -1058,12 +1074,14 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                     onChange={(e) => setInputValue(e.target.value)}
                     placeholder={activeCommand?.inputPlaceholder}
                     disabled={isLoading}
-                    className="w-full bg-transparent text-white text-[13px] placeholder:text-neutral-600 focus:outline-none"
+                    className="w-full bg-transparent text-[var(--color-text-primary)] text-[13px] placeholder:text-[var(--color-text-muted)] focus:outline-none"
                     autoFocus
                   />
                 </div>
               </div>
-              {isLoading && <Loader2 size={16} className="text-neutral-500 animate-spin" />}
+              {isLoading && (
+                <Loader2 size={16} className="text-[var(--color-text-muted)] animate-spin" />
+              )}
             </>
           ) : step === 'select' ? (
             <>
@@ -1071,11 +1089,11 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                 onClick={goBack}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="p-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-neutral-400 hover:text-white transition-all duration-150"
+                className="p-1.5 rounded-lg border transition-all duration-150 text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] bg-[var(--color-surface-muted)] hover:bg-[var(--color-surface-hover)] border-[var(--color-border-subtle)]"
               >
                 <ArrowLeft size={16} strokeWidth={2} />
               </motion.button>
-              <div className="flex-1 flex items-center gap-2.5 bg-white/[0.03] rounded-xl px-3 py-2 border border-white/[0.04]">
+              <div className="flex-1 flex items-center gap-2.5 rounded-xl px-3 py-2 border bg-[var(--color-surface-muted)] border-[var(--color-border)] focus-within:border-[var(--color-border-strong)] focus-within:bg-[var(--color-surface-hover)] transition-all duration-150">
                 <Terminal size={15} className="text-neutral-500" strokeWidth={1.75} />
                 <input
                   ref={inputRef}
@@ -1083,25 +1101,25 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Search commands..."
-                  className="flex-1 bg-transparent text-white text-[13px] placeholder:text-neutral-500 focus:outline-none"
+                  className="flex-1 bg-transparent text-[var(--color-text-primary)] text-[13px] placeholder:text-[var(--color-text-muted)] focus:outline-none"
                   autoFocus
                 />
               </div>
-              <kbd className="hidden sm:flex items-center gap-1 px-2 py-1 text-[10px] font-medium text-neutral-500 bg-white/[0.04] border border-white/[0.06] rounded-md">
+              <kbd className="hidden sm:flex items-center gap-1 px-2 py-1 text-[10px] font-medium text-[var(--color-text-muted)] bg-[var(--color-surface-muted)] border border-[var(--color-border-subtle)] rounded-md">
                 ESC
               </kbd>
             </>
           ) : (
             <>
-              <div className="flex-1 flex items-center gap-2.5 bg-white/[0.03] rounded-xl px-3 py-2 border border-white/[0.04] focus-within:border-white/[0.08] focus-within:bg-white/[0.04] transition-all duration-150">
-                <Search size={15} className="text-neutral-500" strokeWidth={1.75} />
+              <div className="flex-1 flex items-center gap-2.5 rounded-xl px-3 py-2 border bg-[var(--color-surface-muted)] border-[var(--color-border)] focus-within:border-[var(--color-border-strong)] focus-within:bg-[var(--color-surface-hover)] transition-all duration-150">
+                <Search size={15} className="text-[var(--color-text-muted)]" strokeWidth={1.75} />
                 <input
                   ref={inputRef}
                   type="text"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Search players, limiteds, catalog..."
-                  className="flex-1 bg-transparent text-white text-[13px] placeholder:text-neutral-500 focus:outline-none"
+                  className="flex-1 bg-transparent text-[var(--color-text-primary)] text-[13px] placeholder:text-[var(--color-text-muted)] focus:outline-none"
                   autoFocus
                 />
                 {query && (
@@ -1109,7 +1127,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
                     onClick={() => setQuery('')}
-                    className="p-0.5 rounded-md hover:bg-white/[0.08] text-neutral-500 hover:text-neutral-300 transition-colors"
+                    className="p-0.5 rounded-md hover:bg-[var(--color-surface-hover)] text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors"
                   >
                     <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
                       <path
@@ -1124,11 +1142,11 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
               </div>
               <div className="hidden sm:flex items-center gap-2">
                 {(limitedsCount > 0 || catalogCount > 0) && (
-                  <span className="text-[10px] text-neutral-600 tabular-nums">
+                  <span className="text-[10px] text-[var(--color-text-muted)] tabular-nums">
                     {(limitedsCount + catalogCount).toLocaleString()} items
                   </span>
                 )}
-                <kbd className="flex items-center gap-1 px-2 py-1 text-[10px] font-medium text-neutral-500 bg-white/[0.04] border border-white/[0.06] rounded-md">
+                <kbd className="flex items-center gap-1 px-2 py-1 text-[10px] font-medium text-[var(--color-text-muted)] bg-[var(--color-surface-muted)] border border-[var(--color-border-subtle)] rounded-md">
                   ESC
                 </kbd>
               </div>
@@ -1141,13 +1159,16 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
           <div ref={listRef} className="overflow-y-auto" style={{ maxHeight: listMaxHeight }}>
             {!query.trim() ? (
               <div className="px-6 py-10 text-center">
-                <div className="w-12 h-12 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-white/[0.08] to-white/[0.02] flex items-center justify-center">
-                  <Search size={20} className="text-neutral-500" strokeWidth={1.5} />
+                <div
+                  className="w-12 h-12 mx-auto mb-4 rounded-2xl flex items-center justify-center border border-[var(--color-border-subtle)]"
+                  style={{ background: TILE_BG }}
+                >
+                  <Search size={20} className="text-[var(--color-text-muted)]" strokeWidth={1.5} />
                 </div>
-                <div className="text-neutral-300 text-[13px] font-medium mb-1.5">
+                <div className="text-[var(--color-text-secondary)] text-[13px] font-medium mb-1.5">
                   Search anything
                 </div>
-                <div className="text-neutral-500 text-[12px] mb-5 max-w-[280px] mx-auto leading-relaxed">
+                <div className="text-[var(--color-text-muted)] text-[12px] mb-5 max-w-[280px] mx-auto leading-relaxed">
                   Find players, limiteds, catalog items, or run commands
                 </div>
                 <div className="flex flex-wrap justify-center gap-1.5">
@@ -1164,10 +1185,13 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                     </span>
                   ))}
                 </div>
-                <div className="mt-5 pt-4 border-t border-white/[0.04]">
-                  <div className="text-[11px] text-neutral-600 flex items-center justify-center gap-2">
+                <div
+                  className="mt-5 pt-4 border-t"
+                  style={{ borderColor: 'var(--color-border-subtle)' }}
+                >
+                  <div className="text-[11px] text-[var(--color-text-muted)] flex items-center justify-center gap-2">
                     <span>Type</span>
-                    <kbd className="px-1.5 py-0.5 bg-white/[0.04] border border-white/[0.06] rounded text-neutral-400 font-mono">
+                    <kbd className="px-1.5 py-0.5 rounded font-mono text-[var(--color-text-muted)] bg-[var(--color-surface-muted)] border border-[var(--color-border-subtle)]">
                       &gt;
                     </kbd>
                     <span>for commands only</span>
@@ -1189,11 +1213,20 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                 if (filteredCmds.length === 0) {
                   return (
                     <div className="px-6 py-12 text-center">
-                      <div className="w-10 h-10 mx-auto mb-3 rounded-xl bg-white/[0.04] flex items-center justify-center">
-                        <Terminal size={18} className="text-neutral-600" strokeWidth={1.5} />
+                      <div
+                        className="w-10 h-10 mx-auto mb-3 rounded-xl flex items-center justify-center border border-[var(--color-border-subtle)]"
+                        style={{ background: TILE_BG }}
+                      >
+                        <Terminal
+                          size={18}
+                          className="text-[var(--color-text-muted)]"
+                          strokeWidth={1.5}
+                        />
                       </div>
-                      <div className="text-neutral-400 text-[13px]">No commands found</div>
-                      <div className="text-neutral-600 text-[11px] mt-1">
+                      <div className="text-[var(--color-text-secondary)] text-[13px]">
+                        No commands found
+                      </div>
+                      <div className="text-[var(--color-text-muted)] text-[11px] mt-1">
                         Try a different search term
                       </div>
                     </div>
@@ -1202,10 +1235,10 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
 
                 return (
                   <div className="py-1.5">
-                    <div className="px-4 py-2 text-[10px] font-semibold text-neutral-500 uppercase tracking-wider flex items-center gap-2">
+                    <div className="px-4 py-2 text-[10px] font-semibold uppercase tracking-wider flex items-center gap-2 text-[var(--color-text-secondary)]">
                       <Terminal size={11} strokeWidth={2} />
                       Commands
-                      <span className="ml-auto text-neutral-600 normal-case font-normal tracking-normal">
+                      <span className="ml-auto text-[var(--color-text-muted)] normal-case font-normal tracking-normal">
                         {filteredCmds.length} {filteredCmds.length === 1 ? 'result' : 'results'}
                       </span>
                     </div>
@@ -1225,10 +1258,10 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                         >
                           <div
                             className={cn(
-                              'flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center transition-all duration-150',
+                              ICON_BASE_CLASSES,
                               isSelected
                                 ? 'bg-[var(--accent-color)] text-[var(--accent-color-foreground)] shadow-lg shadow-[var(--accent-color)]/20'
-                                : 'bg-neutral-800/80 text-neutral-400 group-hover:bg-neutral-800 group-hover:text-neutral-300'
+                                : ICON_UNSELECTED_CLASSES
                             )}
                           >
                             {iconMap[cmd.icon] || <Sparkles size={16} strokeWidth={1.75} />}
@@ -1264,20 +1297,35 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
               <div className="px-6 py-12 text-center">
                 {limitedsLoading || catalogLoading || playerLoading ? (
                   <div className="flex flex-col items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-white/[0.04] flex items-center justify-center">
-                      <Loader2 size={18} className="text-neutral-400 animate-spin" />
+                    <div
+                      className="w-10 h-10 rounded-xl flex items-center justify-center border border-[var(--color-border-subtle)]"
+                      style={{ background: TILE_BG }}
+                    >
+                      <Loader2
+                        size={18}
+                        className="text-[var(--color-text-secondary)] animate-spin"
+                      />
                     </div>
-                    <div className="text-neutral-400 text-[13px]">
+                    <div className="text-[var(--color-text-secondary)] text-[13px]">
                       {playerLoading ? 'Searching players...' : 'Indexing items...'}
                     </div>
                   </div>
                 ) : (
                   <>
-                    <div className="w-10 h-10 mx-auto mb-3 rounded-xl bg-white/[0.04] flex items-center justify-center">
-                      <Search size={18} className="text-neutral-600" strokeWidth={1.5} />
+                    <div
+                      className="w-10 h-10 mx-auto mb-3 rounded-xl flex items-center justify-center border border-[var(--color-border-subtle)]"
+                      style={{ background: TILE_BG }}
+                    >
+                      <Search
+                        size={18}
+                        className="text-[var(--color-text-muted)]"
+                        strokeWidth={1.5}
+                      />
                     </div>
-                    <div className="text-neutral-400 text-[13px]">No results found</div>
-                    <div className="text-neutral-600 text-[11px] mt-1">
+                    <div className="text-[var(--color-text-secondary)] text-[13px]">
+                      No results found
+                    </div>
+                    <div className="text-[var(--color-text-muted)] text-[11px] mt-1">
                       Try a different search term
                     </div>
                   </>
@@ -1354,20 +1402,37 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
           <div ref={listRef} className="overflow-y-auto" style={{ maxHeight: listMaxHeight }}>
             {flatCommands.length === 0 ? (
               <div className="px-6 py-12 text-center">
-                <div className="w-10 h-10 mx-auto mb-3 rounded-xl bg-white/[0.04] flex items-center justify-center">
-                  <Terminal size={18} className="text-neutral-600" strokeWidth={1.5} />
+                <div
+                  className="w-10 h-10 mx-auto mb-3 rounded-xl flex items-center justify-center border border-[var(--color-border-subtle)]"
+                  style={{ background: TILE_BG }}
+                >
+                  <Terminal
+                    size={18}
+                    className="text-[var(--color-text-muted)]"
+                    strokeWidth={1.5}
+                  />
                 </div>
-                <div className="text-neutral-400 text-[13px]">No commands found</div>
-                <div className="text-neutral-600 text-[11px] mt-1">Try a different search</div>
+                <div className="text-[var(--color-text-secondary)] text-[13px]">
+                  No commands found
+                </div>
+                <div className="text-[var(--color-text-muted)] text-[11px] mt-1">
+                  Try a different search
+                </div>
               </div>
             ) : (
               <div className="py-1.5">
                 {groupedCommands.map(({ category, commands: cmds }) => (
                   <div key={category} className="mb-1">
-                    <div className="px-4 py-2 text-[10px] font-semibold text-neutral-500 uppercase tracking-wider flex items-center gap-2 sticky top-0 bg-neutral-950/95 backdrop-blur-sm z-10">
+                    <div
+                      className="px-4 py-2 text-[10px] font-semibold uppercase tracking-wider flex items-center gap-2 sticky top-0 backdrop-blur-sm z-10 border-b"
+                      style={{
+                        backgroundColor: TILE_BG,
+                        borderColor: 'var(--color-border-subtle)'
+                      }}
+                    >
                       {categoryLabels[category]}
-                      <span className="w-px h-3 bg-neutral-800" />
-                      <span className="text-neutral-600 normal-case font-normal tracking-normal">
+                      <span className="w-px h-3 bg-[var(--color-border)]" />
+                      <span className="text-[var(--color-text-muted)] normal-case font-normal tracking-normal">
                         {cmds.length}
                       </span>
                     </div>
@@ -1390,10 +1455,10 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                         >
                           <div
                             className={cn(
-                              'flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center transition-all duration-150',
+                              ICON_BASE_CLASSES,
                               isSelected
                                 ? 'bg-[var(--accent-color)] text-[var(--accent-color-foreground)] shadow-lg shadow-[var(--accent-color)]/20'
-                                : 'bg-neutral-800/80 text-neutral-400 group-hover:bg-neutral-800 group-hover:text-neutral-300'
+                                : ICON_UNSELECTED_CLASSES
                             )}
                           >
                             {iconMap[cmd.icon] || <Sparkles size={16} strokeWidth={1.75} />}
@@ -1447,10 +1512,13 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                 className="overflow-y-auto"
                 style={{ maxHeight: secondaryListMaxHeight }}
               >
-                <div className="px-4 py-2 text-[10px] font-semibold text-neutral-500 uppercase tracking-wider flex items-center gap-2 sticky top-0 bg-neutral-950/95 backdrop-blur-sm z-10">
+                <div
+                  className="px-4 py-2 text-[10px] font-semibold uppercase tracking-wider flex items-center gap-2 sticky top-0 backdrop-blur-sm z-10 border-b text-[var(--color-text-secondary)]"
+                  style={{ backgroundColor: TILE_BG, borderColor: 'var(--color-border-subtle)' }}
+                >
                   <Users size={11} strokeWidth={2} />
                   Friends
-                  <span className="ml-auto text-neutral-600 normal-case font-normal tracking-normal">
+                  <span className="ml-auto text-[var(--color-text-muted)] normal-case font-normal tracking-normal">
                     {filteredFriends.length}
                   </span>
                 </div>
@@ -1474,7 +1542,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                       <img
                         src={friend.avatarUrl}
                         alt={friend.displayName}
-                        className="w-9 h-9 rounded-full bg-neutral-800 flex-shrink-0 ring-1 ring-white/5"
+                        className="w-9 h-9 rounded-full bg-[var(--color-surface-muted)] flex-shrink-0 ring-1 ring-[var(--color-border-subtle)]"
                       />
                       <div className="flex-1 min-w-0">
                         <div className="text-[13px] font-medium truncate text-neutral-200 group-hover:text-white transition-colors">
@@ -1504,8 +1572,11 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
             )}
 
             {/* Help text */}
-            <div className="px-4 py-3 flex items-center justify-between border-t border-white/[0.04] bg-gradient-to-b from-transparent to-white/[0.01]">
-              <span className="text-neutral-500 text-[12px]">
+            <div
+              className="px-4 py-3 flex items-center justify-between border-t"
+              style={{ borderColor: 'var(--color-border-subtle)', background: STRIP_BG }}
+            >
+              <span className="text-[var(--color-text-muted)] text-[12px]">
                 {filteredFriends.length > 0
                   ? 'Select a friend or type a username'
                   : 'Type a username'}
@@ -1513,25 +1584,28 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
               <div className="flex items-center gap-3">
                 {filteredFriends.length > 0 && (
                   <div className="flex items-center gap-1.5">
-                    <kbd className="px-1.5 py-0.5 text-[10px] font-medium text-neutral-500 bg-white/[0.04] border border-white/[0.06] rounded">
+                    <kbd className="px-1.5 py-0.5 text-[10px] font-medium text-[var(--color-text-muted)] bg-[var(--color-surface-muted)] border border-[var(--color-border-subtle)] rounded">
                       Tab
                     </kbd>
-                    <span className="text-neutral-600 text-[10px]">autocomplete</span>
+                    <span className="text-[var(--color-text-muted)] text-[10px]">autocomplete</span>
                   </div>
                 )}
                 <div className="flex items-center gap-1.5">
-                  <kbd className="px-1.5 py-0.5 text-[10px] font-medium text-neutral-500 bg-white/[0.04] border border-white/[0.06] rounded">
+                  <kbd className="px-1.5 py-0.5 text-[10px] font-medium text-[var(--color-text-muted)] bg-[var(--color-surface-muted)] border border-[var(--color-border-subtle)] rounded">
                     ↵
                   </kbd>
-                  <span className="text-neutral-600 text-[10px]">confirm</span>
+                  <span className="text-[var(--color-text-muted)] text-[10px]">confirm</span>
                 </div>
               </div>
             </div>
 
             {isLoading && (
-              <div className="px-4 py-4 flex items-center justify-center gap-2 border-t border-white/[0.04]">
-                <Loader2 size={15} className="text-neutral-400 animate-spin" />
-                <span className="text-[12px] text-neutral-400">Loading...</span>
+              <div
+                className="px-4 py-4 flex items-center justify-center gap-2 border-t"
+                style={{ borderColor: 'var(--color-border-subtle)' }}
+              >
+                <Loader2 size={15} className="text-[var(--color-text-secondary)] animate-spin" />
+                <span className="text-[12px] text-[var(--color-text-secondary)]">Loading...</span>
               </div>
             )}
           </div>
@@ -1541,20 +1615,23 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         {step === 'results' && (
           <div>
             {/* Results Header */}
-            <div className="px-4 py-3 border-b border-white/[0.06] flex items-center gap-3 bg-gradient-to-b from-white/[0.02] to-transparent">
+            <div
+              className="px-4 py-3 border-b flex items-center gap-3"
+              style={{ borderColor: 'var(--color-border-subtle)', background: STRIP_BG }}
+            >
               <motion.button
                 onClick={goBack}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="p-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-neutral-400 hover:text-white transition-all duration-150"
+                className="p-1.5 rounded-lg border transition-all duration-150 text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] bg-[var(--color-surface-muted)] hover:bg-[var(--color-surface-hover)] border-[var(--color-border-subtle)]"
               >
                 <ArrowLeft size={16} strokeWidth={2} />
               </motion.button>
               <div className="flex-1">
-                <div className="text-[10px] uppercase tracking-wider text-neutral-500 font-medium mb-0.5">
+                <div className="text-[10px] uppercase tracking-wider text-[var(--color-text-muted)] font-medium mb-0.5">
                   Search Results
                 </div>
-                <div className="text-[13px] text-white font-medium">
+                <div className="text-[13px] text-[var(--color-text-primary)] font-medium">
                   {searchResults.length} {searchResults.length === 1 ? 'item' : 'items'} found
                 </div>
               </div>
@@ -1564,10 +1641,15 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
             <div ref={resultsRef} style={{ height: listMaxHeight }}>
               {searchResults.length === 0 ? (
                 <div className="px-6 py-12 text-center">
-                  <div className="w-10 h-10 mx-auto mb-3 rounded-xl bg-white/[0.04] flex items-center justify-center">
-                    <Boxes size={18} className="text-neutral-600" strokeWidth={1.5} />
+                  <div
+                    className="w-10 h-10 mx-auto mb-3 rounded-xl flex items-center justify-center border border-[var(--color-border-subtle)]"
+                    style={{ background: TILE_BG }}
+                  >
+                    <Boxes size={18} className="text-[var(--color-text-muted)]" strokeWidth={1.5} />
                   </div>
-                  <div className="text-neutral-400 text-[13px]">No items found</div>
+                  <div className="text-[var(--color-text-secondary)] text-[13px]">
+                    No items found
+                  </div>
                 </div>
               ) : (
                 <Virtuoso
@@ -1593,15 +1675,15 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                           <img
                             src={item.imageUrl}
                             alt={item.name}
-                            className="flex-shrink-0 w-9 h-9 rounded-lg bg-neutral-800 object-cover ring-1 ring-white/5"
+                            className="flex-shrink-0 w-9 h-9 rounded-lg bg-[var(--color-surface-muted)] object-cover ring-1 ring-[var(--color-border-subtle)]"
                           />
                         ) : (
                           <div
                             className={cn(
-                              'flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center transition-all duration-150',
+                              ICON_BASE_CLASSES,
                               isSelected
                                 ? 'bg-[var(--accent-color)] text-[var(--accent-color-foreground)]'
-                                : 'bg-neutral-800/80 text-neutral-400 group-hover:bg-neutral-800'
+                                : ICON_UNSELECTED_CLASSES
                             )}
                           >
                             <Boxes size={16} strokeWidth={1.75} />
@@ -1660,20 +1742,25 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
             </div>
 
             {/* Results Help text */}
-            <div className="px-4 py-3 flex items-center justify-between border-t border-white/[0.04] bg-gradient-to-b from-transparent to-white/[0.01]">
-              <span className="text-neutral-500 text-[12px]">Select an item to open</span>
+            <div
+              className="px-4 py-3 flex items-center justify-between border-t"
+              style={{ borderColor: 'var(--color-border-subtle)', background: STRIP_BG }}
+            >
+              <span className="text-[var(--color-text-muted)] text-[12px]">
+                Select an item to open
+              </span>
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-1.5">
-                  <kbd className="px-1.5 py-0.5 text-[10px] font-medium text-neutral-500 bg-white/[0.04] border border-white/[0.06] rounded">
+                  <kbd className="px-1.5 py-0.5 text-[10px] font-medium text-[var(--color-text-muted)] bg-[var(--color-surface-muted)] border border-[var(--color-border-subtle)] rounded">
                     ↵
                   </kbd>
-                  <span className="text-neutral-600 text-[10px]">open</span>
+                  <span className="text-[var(--color-text-muted)] text-[10px]">open</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <kbd className="px-1.5 py-0.5 text-[10px] font-medium text-neutral-500 bg-white/[0.04] border border-white/[0.06] rounded">
+                  <kbd className="px-1.5 py-0.5 text-[10px] font-medium text-[var(--color-text-muted)] bg-[var(--color-surface-muted)] border border-[var(--color-border-subtle)] rounded">
                     ESC
                   </kbd>
-                  <span className="text-neutral-600 text-[10px]">back</span>
+                  <span className="text-[var(--color-text-muted)] text-[10px]">back</span>
                 </div>
               </div>
             </div>
@@ -1681,29 +1768,32 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         )}
 
         {/* Footer */}
-        <div className="flex items-center justify-between px-4 py-2.5 border-t border-white/[0.04] bg-gradient-to-b from-transparent to-neutral-950/50">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-1.5 text-neutral-600">
-              <kbd className="w-5 h-5 flex items-center justify-center text-[10px] font-medium bg-white/[0.04] border border-white/[0.06] rounded">
+        <div
+          className="flex items-center justify-between px-4 py-2.5 border-t"
+          style={{ borderColor: 'var(--color-border-subtle)', background: STRIP_BG }}
+        >
+          <div className="flex items-center gap-4 text-[var(--color-text-muted)]">
+            <div className="flex items-center gap-1.5">
+              <kbd className="w-5 h-5 flex items-center justify-center text-[10px] font-medium bg-[var(--color-surface-muted)] border border-[var(--color-border-subtle)] rounded">
                 ↑
               </kbd>
-              <kbd className="w-5 h-5 flex items-center justify-center text-[10px] font-medium bg-white/[0.04] border border-white/[0.06] rounded">
+              <kbd className="w-5 h-5 flex items-center justify-center text-[10px] font-medium bg-[var(--color-surface-muted)] border border-[var(--color-border-subtle)] rounded">
                 ↓
               </kbd>
               <span className="ml-0.5 text-[10px]">navigate</span>
             </div>
-            <div className="w-px h-3 bg-white/[0.06]" />
-            <div className="flex items-center gap-1.5 text-neutral-600">
-              <kbd className="px-1.5 h-5 flex items-center justify-center text-[10px] font-medium bg-white/[0.04] border border-white/[0.06] rounded">
+            <div className="w-px h-3 bg-[var(--color-border-subtle)]" />
+            <div className="flex items-center gap-1.5">
+              <kbd className="px-1.5 h-5 flex items-center justify-center text-[10px] font-medium bg-[var(--color-surface-muted)] border border-[var(--color-border-subtle)] rounded">
                 ↵
               </kbd>
               <span className="text-[10px]">select</span>
             </div>
             {step === 'search' && (
               <>
-                <div className="w-px h-3 bg-white/[0.06]" />
-                <div className="flex items-center gap-1.5 text-neutral-600">
-                  <kbd className="px-1.5 h-5 flex items-center justify-center text-[10px] font-medium bg-white/[0.04] border border-white/[0.06] rounded">
+                <div className="w-px h-3 bg-[var(--color-border-subtle)]" />
+                <div className="flex items-center gap-1.5">
+                  <kbd className="px-1.5 h-5 flex items-center justify-center text-[10px] font-medium bg-[var(--color-surface-muted)] border border-[var(--color-border-subtle)] rounded">
                     &gt;
                   </kbd>
                   <span className="text-[10px]">commands</span>
@@ -1711,7 +1801,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
               </>
             )}
           </div>
-          <div className="flex items-center gap-1 text-[10px] text-neutral-600 bg-white/[0.02] px-2 py-1 rounded-md border border-white/[0.04]">
+          <div className="flex items-center gap-1 text-[10px] text-[var(--color-text-muted)] bg-[var(--color-surface-muted)] px-2 py-1 rounded-md border border-[var(--color-border-subtle)]">
             <Command size={11} strokeWidth={1.5} />
             <span className="font-medium">K</span>
           </div>

@@ -3,15 +3,41 @@ import { flushSync } from 'react-dom'
 import { TabId } from '../types'
 import { useActiveTab, useSetActiveTab } from '../stores/useUIStore'
 
+type TransitionRoot =
+  | Document
+  | (HTMLElement & { startViewTransition?: Document['startViewTransition'] })
+
 const prefersReducedMotion = () => {
   if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches
 }
 
-const supportsViewTransitions = () => {
-  if (typeof document === 'undefined') return false
-  if (prefersReducedMotion()) return false
-  return typeof document.startViewTransition === 'function'
+const getTransitionRoot = (): TransitionRoot | null => {
+  if (typeof document === 'undefined') return null
+
+  // Prefer the tab surface for scoped transitions when supported
+  const scopedSurface = document.querySelector<HTMLElement>('.tab-transition-surface')
+  if (scopedSurface && 'startViewTransition' in scopedSurface) {
+    return scopedSurface
+  }
+
+  return document
+}
+
+const getStartTransition = () => {
+  const root = getTransitionRoot()
+  const scopedStart = root ? (root as any).startViewTransition : undefined
+  if (typeof scopedStart === 'function') {
+    return scopedStart.bind(root)
+  }
+
+  const docStart =
+    typeof document !== 'undefined' ? (document as any).startViewTransition : undefined
+  if (typeof docStart === 'function') {
+    return docStart.bind(document)
+  }
+
+  return null
 }
 
 /**
@@ -32,19 +58,19 @@ export const useTabTransition = () => {
         })
       }
 
-      if (!supportsViewTransitions()) {
+      if (prefersReducedMotion()) {
         applyTabChange()
         return
       }
 
-      const startViewTransition = document.startViewTransition
-      if (typeof startViewTransition !== 'function') {
+      const startTransition = getStartTransition()
+      if (typeof startTransition !== 'function') {
         applyTabChange()
         return
       }
 
       try {
-        startViewTransition(() => {
+        startTransition(() => {
           applyTabChange()
         })
       } catch {

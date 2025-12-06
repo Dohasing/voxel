@@ -1,7 +1,7 @@
 import { app, safeStorage } from 'electron'
 import { join } from 'path'
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs'
-import { Account, DEFAULT_ACCENT_COLOR, TabId } from '../../../renderer/src/types'
+import { Account, DEFAULT_ACCENT_COLOR, TabId, ThemePreference } from '../../../renderer/src/types'
 import { MultiInstance } from '@main/lib/MultiInstance'
 import { z } from 'zod'
 import { accountSchema } from '../../../shared/ipc-schemas/user'
@@ -19,6 +19,7 @@ const customFontSchema = z.object({
 })
 
 const sidebarTabIdEnum = z.enum(SIDEBAR_TAB_IDS)
+const themePreferenceEnum = z.enum(['system', 'dark', 'light'])
 
 const storeDataSchema = z.object({
   sidebarWidth: z.number().optional(),
@@ -39,6 +40,7 @@ const storeDataSchema = z.object({
       allowMultipleInstances: z.boolean().optional(),
       defaultInstallationPath: z.string().nullable().optional(),
       accentColor: z.string().optional(),
+      theme: themePreferenceEnum.optional(),
       showSidebarProfileCard: z.boolean().optional(),
       sidebarTabOrder: z.array(sidebarTabIdEnum).optional(),
       sidebarHiddenTabs: z.array(sidebarTabIdEnum).optional(),
@@ -289,12 +291,16 @@ class StorageService {
   public getSettings() {
     const sidebarTabOrder = sanitizeSidebarOrder(this.data.settings?.sidebarTabOrder)
     const sidebarHiddenTabs = sanitizeSidebarHidden(this.data.settings?.sidebarHiddenTabs)
+    const storedAccent = this.data.settings?.accentColor
+    const accentColor =
+      storedAccent && storedAccent !== '#ffffff' ? storedAccent : DEFAULT_ACCENT_COLOR
 
     return {
       primaryAccountId: this.data.settings?.primaryAccountId ?? null,
       allowMultipleInstances: this.data.settings?.allowMultipleInstances ?? false,
       defaultInstallationPath: this.data.settings?.defaultInstallationPath ?? null,
-      accentColor: this.data.settings?.accentColor ?? DEFAULT_ACCENT_COLOR,
+      accentColor,
+      theme: (this.data.settings?.theme as ThemePreference | undefined) ?? 'system',
       showSidebarProfileCard: this.data.settings?.showSidebarProfileCard ?? true,
       sidebarTabOrder,
       sidebarHiddenTabs,
@@ -483,6 +489,7 @@ class StorageService {
     allowMultipleInstances?: boolean
     defaultInstallationPath?: string | null
     accentColor?: string
+    theme?: ThemePreference
     showSidebarProfileCard?: boolean
     sidebarTabOrder?: TabId[]
     sidebarHiddenTabs?: TabId[]
@@ -508,6 +515,10 @@ class StorageService {
 
     if ('accentColor' in settings && typeof settings.accentColor === 'string') {
       nextSettings.accentColor = settings.accentColor
+    }
+
+    if ('theme' in settings && typeof settings.theme === 'string') {
+      nextSettings.theme = settings.theme as ThemePreference
     }
 
     if ('showSidebarProfileCard' in settings) {
@@ -539,8 +550,8 @@ class StorageService {
 
     const { pinCode: _, ...settingsWithoutPin } = nextSettings
     this.data.settings = {
-      ...this.data.settings,
-      ...settingsWithoutPin
+      ...(this.data.settings ?? {}),
+      ...(settingsWithoutPin as any)
     }
     this.save()
 

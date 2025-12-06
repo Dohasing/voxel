@@ -56,7 +56,7 @@ export const QuickActionsBar: React.FC<QuickActionsBarProps> = ({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3, delay: 0.1 }}
-      className="flex items-center p-1 bg-neutral-900/50 border border-neutral-800 rounded-xl"
+      className="flex items-center p-1 bg-[var(--color-surface-muted)] border border-[var(--color-border)] rounded-xl"
     >
       {actions.map((action, index) => (
         <Tooltip key={index}>
@@ -65,8 +65,8 @@ export const QuickActionsBar: React.FC<QuickActionsBarProps> = ({
               onClick={action.onClick}
               className={`
                 pressable flex-1 flex items-center justify-center py-2.5 rounded-lg transition-all duration-150
-                text-neutral-400 hover:text-white
-                hover:bg-neutral-800 active:bg-neutral-700
+                text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]
+                hover:bg-[var(--color-surface-hover)] active:bg-[var(--color-surface-strong)]
                 ${action.icon === Check ? 'text-emerald-400' : ''}
               `}
               aria-label={action.label}

@@ -254,7 +254,7 @@ export const ColorPicker = ({
       <div className={cn('flex w-full flex-col gap-4', className)} {...props}>
         {props.children || (
           <>
-            <ColorPickerSelection className="h-64 rounded-xl border border-neutral-800" />
+            <ColorPickerSelection className="h-64 rounded-xl border border-[var(--color-border)]" />
             <div className="flex flex-col gap-4">
               <div className="flex items-center gap-4">
                 <div className="flex-1">
@@ -487,7 +487,7 @@ export const ColorPickerOutput = ({ className }: React.HTMLAttributes<HTMLDivEle
         options={formats}
         value={mode}
         onChange={setMode}
-        buttonClassName="h-10 px-3 py-2 bg-neutral-900 border border-neutral-800 rounded-md text-xs uppercase"
+        buttonClassName="h-10 px-3 py-2 bg-[var(--color-surface-muted)] border border-[var(--color-border)] hover:border-[var(--color-border-strong)] rounded-md text-xs uppercase"
       />
     </div>
   )
